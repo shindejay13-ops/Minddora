@@ -1,0 +1,2114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Mindora — a student psycho-emotional wellness space with mood check-ins, calm tools, private journaling and progress tracking." />
+  <title>Mindora — Student Psycho-Emotional Wellness App</title>
+  <style>
+    :root {
+      --bg-cream: #F9F7F2;
+      --surface: #FFFFFF;
+      --sage: #52796F;
+      --sage-dark: #354F52;
+      --sage-light: #E8F0EC;
+      --coffee: #D4A373;
+      --coffee-light: #FAEDCD;
+      --sos-red: #D9534F;
+      --sos-bg: #FDF2F2;
+      --text-main: #2B2D2F;
+      --text-muted: #6C757D;
+      --border: #EAE6DF;
+      --radius: 20px;
+      --shadow: 0 6px 20px rgba(53, 79, 82, 0.06);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-cream);
+      color: var(--text-main);
+      padding-bottom: 88px; /* Space for bottom nav */
+      overflow-x: hidden;
+    }
+
+    /* Top App Bar (Flo Style) */
+    .top-bar {
+      background: var(--surface);
+      padding: 16px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: var(--sage-dark);
+    }
+    .sos-pill {
+      background: var(--sos-red);
+      color: #fff;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(217, 83, 79, 0.3);
+    }
+
+    /* Flo-style 7-Day Strip */
+    .day-strip {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .day-pill {
+      flex: 1;
+      text-align: center;
+      padding: 8px 4px;
+      border-radius: 14px;
+      background: var(--bg-cream);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .day-pill.today {
+      background: var(--sage);
+      color: #fff;
+      font-weight: 700;
+    }
+    .day-pill span { display: block; font-size: 0.7rem; opacity: 0.8; }
+    .day-pill strong { font-size: 0.9rem; }
+    .day-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--coffee); margin: 3px auto 0;
+    }
+    .day-pill.today .day-dot { background: #fff; }
+
+    /* Screen Container */
+    .screen {
+      display: none;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 18px 16px;
+      animation: fadeIn 0.25s ease;
+    }
+    .screen.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards & Typography */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    h2 { font-size: 1.15rem; color: var(--sage-dark); }
+    h3 { font-size: 1rem; color: var(--sage-dark); margin-bottom: 6px; }
+    .sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.4; }
+    .tag {
+      font-size: 0.72rem; font-weight: 700; padding: 4px 10px;
+      border-radius: 999px; background: var(--sage-light); color: var(--sage-dark);
+    }
+
+    /* Buttons & Inputs */
+    .btn {
+      background: var(--sage);
+      color: #fff;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      width: 100%;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn:active { opacity: 0.85; }
+    .btn-coffee { background: var(--coffee); color: #2B2D2F; }
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid var(--sage);
+      color: var(--sage-dark);
+    }
+
+    input[type="text"], textarea, select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+      background: var(--bg-cream);
+    }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: var(--sage); }
+
+    /* Mood Grid */
+    .mood-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .mood-btn {
+      background: var(--bg-cream);
+      border: 2px solid transparent;
+      border-radius: 14px;
+      padding: 8px 2px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .mood-btn.selected { border-color: var(--sage); background: var(--sage-light); }
+    .mood-btn span { font-size: 1.4rem; display: block; }
+    .mood-btn small { font-size: 0.68rem; font-weight: 600; color: var(--text-muted); }
+
+    /* Weekly Bar Chart */
+    .chart-wrap {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      height: 110px;
+      background: var(--bg-cream);
+      border-radius: 16px;
+      padding: 14px 12px 8px;
+      margin-top: 14px;
+    }
+    .bar-col { width: 11%; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
+    .bar-fill { width: 100%; max-width: 22px; background: var(--sage); border-radius: 6px 6px 0 0; transition: height 0.4s; }
+    .bar-col span { font-size: 0.7rem; color: var(--text-muted); margin-top: 5px; font-weight: 600; }
+
+    /* 5-Day Challenge Pills */
+    .challenge-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--bg-cream);
+      border-radius: 12px;
+      margin-bottom: 8px;
+      font-size: 0.86rem;
+    }
+
+    /* Tools Sub-Tabs */
+    .sub-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .sub-tabs::-webkit-scrollbar { display: none; }
+    .sub-tab {
+      white-space: nowrap;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .sub-tab.active { background: var(--sage-dark); color: #fff; border-color: var(--sage-dark); }
+    .tool-panel { display: none; }
+    .tool-panel.active { display: block; }
+
+    /* Breathing Circle */
+    .breath-circle {
+      width: 130px; height: 130px;
+      border-radius: 50%;
+      background: var(--sage-light);
+      border: 3px solid var(--sage);
+      display: flex; align-items: center; justify-content: center;
+      margin: 16px auto;
+      font-weight: 700; color: var(--sage-dark);
+      transition: transform 4s ease-in-out, background 0.5s;
+    }
+    .breath-circle.expand { transform: scale(1.22); background: #d4e4dc; }
+
+    /* Emotion Wheel Chips */
+    .chip-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .chip {
+      padding: 7px 13px; border-radius: 999px; font-size: 0.82rem; font-weight: 600;
+      background: var(--bg-cream); border: 1.5px solid var(--border); cursor: pointer;
+    }
+    .chip.active { background: var(--sage); color: #fff; border-color: var(--sage); }
+
+    /* AI Companion Chat */
+    .chat-box {
+      height: 230px;
+      overflow-y: auto;
+      background: var(--bg-cream);
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .msg {
+      max-width: 82%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 0.86rem;
+      line-height: 1.4;
+    }
+    .msg.bot { background: var(--surface); border: 1px solid var(--border); align-self: flex-start; border-bottom-left-radius: 4px; }
+    .msg.user { background: var(--sage); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+
+    /* Stats Grid */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+    .stat-box { padding: 16px; border-radius: 16px; }
+    .stat-box h3 { font-size: 1.8rem; margin-bottom: 2px; }
+    .stat-box p { font-size: 0.8rem; font-weight: 600; opacity: 0.85; }
+
+    /* Settings Toggle Rows */
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .setting-row:last-child { border-bottom: none; }
+
+    /* Feedback Banner */
+    .alert-box {
+      background: var(--sage-light);
+      color: var(--sage-dark);
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      margin-top: 12px;
+      display: none;
+      font-weight: 500;
+    }
+
+    /* SOS Modal Overlay */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(43, 45, 47, 0.6);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-card {
+      background: var(--surface);
+      border-radius: 24px;
+      padding: 24px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.2);
+    }
+    .sos-option {
+      width: 100%;
+      text-align: left;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      border-radius: 14px;
+      border: 1.5px solid var(--border);
+      background: var(--bg-cream);
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+    .sos-option:hover { border-color: var(--sos-red); background: var(--sos-bg); }
+
+    /* Bottom App Navigation Bar (Flo Style) */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 4px 12px;
+      z-index: 100;
+    }
+    .nav-item {
+      background: none;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+      flex: 1;
+    }
+    .nav-item.active { color: var(--sage-dark); }
+    .nav-icon {
+      font-size: 1.25rem;
+      padding: 4px 12px;
+      border-radius: 999px;
+      transition: background 0.2s;
+    }
+    .nav-item.active .nav-icon { background: var(--sage-light); }
+
+    #auth-screen { max-width: 460px; margin: 7vh auto 24px; padding: 22px; }
+    .auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 24px; box-shadow: var(--shadow); }
+    .auth-card input { width:100%; padding:13px 14px; border:1.5px solid var(--border); border-radius:13px; margin:7px 0 14px; font:inherit; background:var(--bg-cream); }
+    .auth-card label { display:block; font-size:.84rem; font-weight:650; color:var(--sage-dark); }
+    .auth-tabs { display:flex; gap:8px; margin:16px 0; }
+    .auth-tabs button { flex:1; border:1px solid var(--border); border-radius:12px; padding:10px; background:var(--bg-cream); color:var(--sage-dark); font-weight:650; }
+    .auth-tabs button.active { background:var(--sage-dark); color:white; }
+    #auth-message { display:none; margin-top:12px; padding:11px 13px; border-radius:12px; font-size:.84rem; background:var(--sage-light); color:var(--sage-dark); }
+    #auth-message.error { display:block; background:var(--sos-bg); color:#842029; }
+    .auth-muted { color:var(--text-muted); font-size:.82rem; line-height:1.45; }
+    #user-chip { font-size:.75rem; color:var(--text-muted); margin-left:auto; margin-right:8px; }
+    .logout-btn { border:1px solid var(--border); background:white; color:var(--sage-dark); border-radius:10px; padding:7px 10px; font-weight:650; }
+    @media (max-width:480px) { #auth-screen { margin:3vh 12px 20px; padding:10px; } .auth-card { padding:20px; } }
+
+
+    /* Structural redesign for authentication screen */
+    #auth-screen.auth-layout{
+      width:min(1120px,100% - 34px);max-width:1120px;min-height:calc(100vh - 35px);
+      margin:18px auto 28px;padding:0;display:grid;grid-template-columns:1.02fr .98fr;
+      overflow:hidden;border:1px solid #e7def5;border-radius:30px;background:#fff;
+      box-shadow:0 24px 70px rgba(58,37,104,.12)
+    }
+    .auth-visual{position:relative;min-height:680px;padding:38px 42px;color:#fff;overflow:hidden;
+      display:flex;flex-direction:column;justify-content:space-between;
+      background:radial-gradient(circle at 80% 22%,#c7a9ff88 0 8%,transparent 27%),
+      radial-gradient(circle at 8% 88%,#b9a0f777 0 10%,transparent 30%),
+      linear-gradient(145deg,#39236f 0%,#6945b7 54%,#a17be4 100%)}
+    .auth-visual:after{content:"";position:absolute;width:430px;height:430px;border:1px solid #ffffff25;border-radius:50%;right:-160px;bottom:-190px;box-shadow:0 0 0 35px #ffffff0b,0 0 0 75px #ffffff08}
+    .auth-visual-top{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
+    .auth-mark{width:45px;height:45px;border-radius:16px;background:#ffffff20;border:1px solid #ffffff45;display:grid;place-items:center;font-size:28px}
+    .auth-brand{font-size:25px;font-weight:850;letter-spacing:-.7px}
+    .auth-illustration{height:285px;position:relative;display:grid;place-items:center;z-index:1}
+    .auth-person{width:190px;height:190px;border-radius:50%;display:grid;place-items:center;font-size:104px;
+      background:radial-gradient(circle,#fff 0%,#eee3ff 55%,#d2bafa 100%);box-shadow:0 18px 45px #21104655;position:relative;z-index:2}
+    .auth-orbit{position:absolute;border:1px solid #ffffff45;border-radius:50%;width:260px;height:260px}
+    .orbit-two{width:330px;height:330px;border-style:dashed;opacity:.55}
+    .auth-leaf{position:absolute;font-size:48px;z-index:3;filter:drop-shadow(0 8px 10px #24134a44)}
+    .leaf-one{left:12%;bottom:18%}.leaf-two{right:12%;top:17%}
+    .auth-visual-copy{position:relative;z-index:1;max-width:440px}
+    .auth-kicker{font-size:10px;font-weight:850;letter-spacing:1.8px;color:#9475d8}
+    .auth-visual .auth-kicker{color:#e1d3ff}
+    .auth-visual-copy h1{font-size:clamp(34px,4vw,49px);line-height:1.05;letter-spacing:-1.8px;margin:13px 0}
+    .auth-visual-copy p{font-size:16px;color:#eee6ff;line-height:1.6;max-width:360px}
+    .auth-feature-pills{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:8px}
+    .auth-feature-pills span{font-size:11px;border:1px solid #ffffff45;background:#ffffff15;border-radius:999px;padding:8px 11px}
+    .auth-form-side{display:flex;flex-direction:column;justify-content:center;padding:34px clamp(22px,4vw,58px);background:linear-gradient(180deg,#fff,#fcfaff)}
+    .auth-card{width:100%;max-width:430px;margin:auto;background:transparent;border:0;border-radius:0;padding:0;box-shadow:none}
+    .auth-heading{margin-bottom:20px}
+    .auth-heading h2{font-size:30px;line-height:1.14;letter-spacing:-1px;color:#35245f;margin:9px 0}
+    .auth-heading .auth-muted{margin:0}
+    .auth-mobile-mark{display:none}
+    .auth-tabs{padding:5px;background:#f3effa;border-radius:14px;gap:5px;margin:18px 0 21px}
+    .auth-tabs button{border:0;border-radius:11px;padding:12px;background:transparent;color:#665783}
+    .auth-tabs button.active{background:linear-gradient(135deg,#8c6cdb,#5f3caf);box-shadow:0 5px 13px #6947b533}
+    .auth-card label{font-size:12px;letter-spacing:.2px;color:#554477;margin:12px 0 6px}
+    .auth-card input{padding:14px 15px;border-radius:13px;background:#fff;margin:0 0 8px;font-size:14px}
+    .auth-primary{width:100%;padding:14px 16px;border-radius:13px;margin-top:12px}
+    .auth-secondary{width:100%;padding:13px 16px;border-radius:13px}
+    #auth-message{margin-top:12px}
+    .auth-privacy{display:flex;gap:9px;align-items:flex-start;background:#f6f2fd;border:1px solid #eee7f8;border-radius:13px;padding:11px;margin-top:20px}
+    .auth-privacy p{margin:0;font-size:11px}
+    .auth-bottom-note{text-align:center;color:#9189a3;font-size:11px;margin:22px 0 0}
+    .auth-bottom-note span{padding:0 5px;color:#a48bd7}
+    @media(max-width:760px){
+      #auth-screen.auth-layout{width:calc(100% - 22px);min-height:0;margin:11px auto 20px;grid-template-columns:1fr;border-radius:24px}
+      .auth-visual{min-height:0;padding:20px 21px 17px;border-radius:23px 23px 0 0;gap:9px}
+      .auth-visual-top{gap:9px}.auth-mark{width:35px;height:35px;font-size:22px;border-radius:12px}.auth-brand{font-size:21px}
+      .auth-illustration{height:105px;order:2}
+      .auth-person{width:88px;height:88px;font-size:53px}
+      .auth-orbit{width:118px;height:118px}.orbit-two{width:148px;height:148px}
+      .auth-leaf{font-size:25px}.leaf-one{left:23%;bottom:7%}.leaf-two{right:22%;top:4%}
+      .auth-visual-copy{order:3}.auth-visual-copy h1{font-size:27px;margin:5px 0}.auth-visual-copy p{font-size:12px;margin:4px 0 0}
+      .auth-feature-pills{order:4;gap:5px}.auth-feature-pills span{font-size:9px;padding:6px 8px}
+      .auth-form-side{padding:24px 21px 18px}
+      .auth-heading{margin-bottom:13px}.auth-heading h2{font-size:25px}
+      .auth-mobile-mark{display:none}
+      .auth-tabs{margin:13px 0 16px}
+      .auth-card{max-width:none}
+      .auth-bottom-note{margin-top:14px}
+    }
+
+  
+    /* Mindora premium lavender dashboard refresh */
+    :root {
+      --bg-cream:#F7F5FF; --surface:#FFFFFF; --sage:#7656D6; --sage-dark:#35205F;
+      --sage-light:#EEE8FF; --coffee:#C4A8FF; --coffee-light:#F3EDFF;
+      --text-main:#241B35; --text-muted:#766D86; --border:#E9E2F5;
+      --shadow:0 10px 28px rgba(64,39,112,.08);
+    }
+    body{background:linear-gradient(180deg,#F5F0FF 0,#FBFAFF 360px);color:var(--text-main)}
+    .top-bar{background:rgba(255,255,255,.94);backdrop-filter:blur(14px);border-bottom:1px solid #E9E2F5;padding:17px 18px 14px}
+    .brand{color:#35205F;letter-spacing:-.3px}.brand:first-letter{color:#7656D6}
+    .logout-btn{border-color:#E9E2F5;color:#5B438A;background:#F8F5FF}
+    .sos-pill{background:#E64F72;box-shadow:0 5px 14px rgba(230,79,114,.22)}
+    .day-pill{background:#F5F1FC;border:1px solid transparent;border-radius:15px;padding:9px 3px}
+    .day-pill.today{background:#7656D6;border-color:#7656D6;box-shadow:0 5px 12px rgba(118,86,214,.2)}
+    .screen{max-width:760px;padding:20px 16px 28px}
+    .card{border:1px solid #EAE4F5;border-radius:22px;box-shadow:0 9px 26px rgba(64,39,112,.065);padding:21px;margin-bottom:17px}
+    #screen-today>.card:first-child{background:radial-gradient(circle at 88% 10%,rgba(255,255,255,.22),transparent 32%),linear-gradient(130deg,#392064 0%,#7656D6 62%,#9A7CEB 100%)!important;border:0;min-height:170px;display:flex;flex-direction:column;justify-content:center;gap:7px;box-shadow:0 14px 30px rgba(75,48,132,.2)}
+    #screen-today>.card:first-child p:last-child{max-width:440px;line-height:1.55}
+    h2,h3{color:#39245F}.sub{color:#7D748D;line-height:1.55}
+    .tag{background:#F0EAFE;color:#6443B0}
+    .btn{background:linear-gradient(110deg,#6947C5,#8B6BE0);box-shadow:0 6px 15px rgba(105,71,197,.18)}
+    .btn-outline{background:#fff;border-color:#B9A6E8;color:#5A3D9D}
+    input[type="text"],textarea,select{background:#FBFAFE;border-color:#E7E0F1;color:#302443}
+    .mood-btn{background:#F8F5FF;border:1.5px solid #EEE8F8;border-radius:16px;padding:11px 3px}
+    .mood-btn.selected{border-color:#7656D6;background:#F0EAFE;box-shadow:0 4px 10px rgba(118,86,214,.1)}
+    .mood-btn small{color:#6F6481}
+    .chart-wrap{background:#FAF8FE;border-radius:16px;padding:14px 10px 10px}
+    .bar-fill{background:linear-gradient(180deg,#A78BEF,#7656D6);border-radius:7px 7px 3px 3px}
+    .challenge-item{border-bottom:1px solid #F0ECF6;padding:12px 0;color:#514763}
+    .bottom-nav{background:rgba(255,255,255,.97);border-top:1px solid #E9E2F5;box-shadow:0 -8px 25px rgba(64,39,112,.06);backdrop-filter:blur(12px)}
+    .nav-item{color:#948AA3}.nav-item.active{color:#6848C0}.nav-item.active .nav-icon{background:#F0EAFE;color:#6848C0}
+    .nav-icon{border-radius:13px}
+    .alert-box{border-radius:14px}
+    @media(min-width:760px){#screen-today{padding-top:26px}#screen-today>.card:first-child{padding:30px 32px}}
+    @media(max-width:430px){.top-row{gap:7px;flex-wrap:wrap}.brand{font-size:1.1rem}.sos-pill{padding:7px 10px}.logout-btn{padding:7px 8px}.day-strip{gap:4px}.day-pill{padding:8px 2px}}
+
+
+    /* Full monthly calendar */
+    .calendar-card{background:#fff;border:1px solid #EAE4F5;border-radius:22px;padding:18px;margin:0 0 16px;box-shadow:0 8px 22px rgba(64,39,112,.055)}
+    .calendar-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .calendar-head strong{font-size:1.05rem;color:#39245F}
+    .calendar-nav{display:flex;gap:8px}
+    .calendar-nav button{width:34px;height:34px;border:1px solid #E8E0F2;border-radius:11px;background:#F8F5FF;color:#6848C0;font-size:1.2rem}
+    .calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;text-align:center}
+    .calendar-weekday{font-size:.72rem;font-weight:700;color:#948AA3;padding:5px 0}
+    .calendar-day{height:39px;border:0;border-radius:12px;background:#FAF8FE;color:#514763;font:600 .86rem inherit;cursor:pointer}
+    .calendar-day.muted{background:transparent;color:#C5BDCF}
+    .calendar-day.selected{background:linear-gradient(135deg,#6947C5,#9675E7);color:#fff;box-shadow:0 4px 10px rgba(105,71,197,.2)}
+    .calendar-day.today:not(.selected){outline:1.5px solid #8B6BE0;color:#6848C0}
+    .calendar-day.day-completed{background:#DDF4E4;color:#187A3D;box-shadow:inset 0 -3px 0 #28A653}
+    .calendar-day.day-skipped{background:#FCE3E3;color:#B4232D;box-shadow:inset 0 -3px 0 #D64545}
+    .calendar-day.day-completed.selected{background:linear-gradient(135deg,#6947C5,#9675E7);color:#fff;box-shadow:inset 0 -4px 0 #43C56D,0 4px 10px rgba(105,71,197,.2)}
+    .calendar-day.day-skipped.selected{background:linear-gradient(135deg,#6947C5,#9675E7);color:#fff;box-shadow:inset 0 -4px 0 #FF7777,0 4px 10px rgba(105,71,197,.2)}
+    .calendar-legend{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:9px;font-size:.74rem;color:#756B83}
+    .calendar-legend span{display:inline-flex;align-items:center;gap:5px}
+    .calendar-legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+    .tool-step-nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .tool-step-nav .btn{flex:1;min-width:130px}
+    .calendar-note{font-size:.76rem;color:#887E98;margin-top:12px;text-align:center}
+
+    /* Mindora demo refinement: make mood emojis clearly visible on mobile */
+    .mood-btn { min-height: 112px; padding: 14px 5px !important; }
+    .mood-btn span { font-size: 2.25rem !important; line-height: 1.25; margin-bottom: 7px; }
+    .mood-btn small { font-size: 0.78rem !important; }
+    @media (max-width: 420px) {
+      .mood-btn { min-height: 118px; }
+      .mood-btn span { font-size: 2.45rem !important; }
+      .mood-btn small { font-size: 0.75rem !important; }
+    }
+  
+/* V12: independent, polished section interfaces */
+.page-intro{display:flex;align-items:center;gap:14px;padding:20px 18px;margin:8px 0 18px;border-radius:22px;color:#fff;box-shadow:0 12px 28px rgba(83,48,139,.12);background:linear-gradient(125deg,#482477,#9869e8);}
+.page-intro-icon{width:58px;height:58px;flex:0 0 58px;border-radius:18px;display:grid;place-items:center;background:rgba(255,255,255,.18);font-size:30px;border:1px solid rgba(255,255,255,.24);}
+.page-kicker{font-size:.68rem;letter-spacing:.14em;font-weight:800;opacity:.82;}
+.page-intro h1{font-size:1.45rem;line-height:1.15;margin:5px 0 4px;color:#fff;}
+.page-intro p{font-size:.84rem;line-height:1.4;margin:0;color:rgba(255,255,255,.9);}
+#screen-tools .sub-tabs{position:sticky;top:0;z-index:3;padding:8px 0;background:var(--bg-cream);border-radius:14px;}
+#screen-tools .sub-tab{border-radius:999px;padding:10px 14px;}
+#screen-companion .card{border-radius:22px;}
+#screen-companion .chat-box{min-height:260px;max-height:42vh;border-radius:20px;padding:14px;}
+#screen-companion .chip-wrap{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 14px;}
+#screen-companion .chip{border-radius:999px;padding:9px 13px;}
+#screen-journal textarea{min-height:150px;border-radius:16px;padding:14px;}
+#screen-journal .card,#screen-progress .card,#screen-tools .card{border-radius:22px;}
+#screen-progress .stats-grid{gap:12px;}
+#screen-progress .stat-box{border-radius:18px;padding:16px;}
+.bottom-nav{backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 -8px 28px rgba(55,34,85,.07);}
+.bottom-nav .nav-item{min-width:0;border-radius:16px;margin:4px 2px;padding:8px 2px;}
+.bottom-nav .nav-item.active{background:#f0eaff;color:#6540a3;}
+.bottom-nav .nav-icon{font-size:1.55rem;line-height:1.3;}
+@media(max-width:420px){.page-intro{padding:16px 14px;gap:11px}.page-intro-icon{width:50px;height:50px;flex-basis:50px;font-size:26px}.page-intro h1{font-size:1.25rem}.page-intro p{font-size:.78rem}}
+
+
+.daily-status-card{border:1px solid #e9e1f5;background:linear-gradient(180deg,#fff,#fbf9ff);}
+.daily-progress-track{height:11px;border-radius:99px;background:#eee8f8;overflow:hidden;margin:10px 0 12px;}
+.daily-progress-track>div{height:100%;width:0;background:linear-gradient(90deg,#6844bd,#a17bea);border-radius:99px;transition:width .25s;}
+.daily-status-list{display:grid;gap:9px;margin-top:12px;}
+.daily-status-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:13px;background:#f8f5ff;font-size:.9rem;}
+.daily-status-icon{width:27px;height:27px;border-radius:50%;display:grid;place-items:center;background:#eee8fa;color:#6540a3;font-weight:800;flex:none;}
+.daily-status-row.done .daily-status-icon{background:#e4f5e9;color:#23834a;}
+.daily-status-row small{display:block;color:var(--text-muted);font-size:.75rem;margin-top:2px;}
+.daily-status-foot{font-size:.74rem;color:var(--text-muted);margin:12px 0 0;}
+
+#tool-focus .card,#tool-meditation .card,#tool-sleep .card{border-radius:22px;} #focus-timer-display{letter-spacing:.04em;} 
+
+    .tool-step-nav{display:flex;justify-content:flex-end;margin:14px 0 4px;}
+    .tool-step-nav .btn{width:auto;min-width:150px;}
+    .tool-step-nav .btn:focus{outline:3px solid rgba(105,68,181,.25);outline-offset:2px;}
+
+    .language-picker{display:flex;align-items:center;gap:6px;background:#f4efff;border:1px solid #e5dcfa;border-radius:999px;padding:5px 9px;color:#563b91;font-size:.78rem;font-weight:700}
+    .language-picker select{border:0;background:transparent;color:#563b91;font:inherit;outline:none;max-width:112px}
+    @media(max-width:520px){.top-row{flex-wrap:wrap}.language-picker{order:4}}
+</style>
+</head>
+<body>
+
+  <div id="app-shell" style="display:none;">
+
+  <!-- TOP HEADER & FLO-STYLE CALENDAR STRIP -->
+  <header class="top-bar">
+    <div class="top-row">
+      <div class="brand">✿ Mindora <span style="font-size:0.75rem; font-weight:500; color:var(--text-muted);">Student Wellness</span></div>
+      <span id="user-chip"></span>
+      <label class="language-picker" aria-label="Choose language">🌐 <span>Language</span>
+        <select id="mindora-language" onchange="setMindoraLanguage(this.value)">
+          <option value="en">English</option><option value="mr">मराठी</option><option value="hi">हिंदी</option>
+        </select>
+      </label>
+      <button class="logout-btn" onclick="logoutUser()">Logout</button>
+      <button class="sos-pill" onclick="openSOS()">🚨 SOS Help</button>
+    </div>
+    <div class="day-strip">
+      <div class="day-pill"><span>Mon</span><strong>9</strong><div class="day-dot"></div></div>
+      <div class="day-pill"><span>Tue</span><strong>10</strong><div class="day-dot"></div></div>
+      <div class="day-pill"><span>Wed</span><strong>11</strong><div class="day-dot"></div></div>
+      <div class="day-pill"><span>Thu</span><strong>12</strong><div class="day-dot"></div></div>
+      <div class="day-pill today"><span>Fri</span><strong>13</strong><div class="day-dot"></div></div>
+      <div class="day-pill"><span>Sat</span><strong>14</strong></div>
+      <div class="day-pill"><span>Sun</span><strong>15</strong></div>
+    </div>
+  </header>
+
+  <!-- ==================== SCREEN 1: TODAY (HOME & MOOD) ==================== -->
+  <section id="screen-today" class="screen active">
+    <div class="page-intro today-intro"><div class="page-intro-icon">🌿</div><div><span class="page-kicker">YOUR DAILY SPACE</span><h1>Today</h1><p>Check in with yourself, one small step at a time.</p></div></div>
+    <div class="card daily-status-card" id="daily-status-card">
+      <div class="card-header"><h2>Today's Completion</h2><span class="tag" id="daily-status-percent">0% complete</span></div>
+      <div class="daily-progress-track"><div id="daily-progress-fill"></div></div>
+      <p class="sub" id="daily-status-summary">Your daily activity will appear here as you complete it.</p>
+      <div class="daily-status-list" id="daily-status-list"></div>
+      <p class="daily-status-foot">Your progress updates automatically when you save an entry or complete an activity.</p>
+    </div>
+
+    <div class="calendar-card" aria-label="Monthly calendar">
+      <div class="calendar-head">
+        <strong id="calendar-month-label">November 2026</strong>
+        <div class="calendar-nav"><button type="button" onclick="changeCalendarMonth(-1)" aria-label="Previous month">‹</button><button type="button" onclick="changeCalendarMonth(1)" aria-label="Next month">›</button></div>
+      </div>
+      <div class="calendar-grid" id="calendar-grid"></div>
+      <div class="calendar-note" id="calendar-selected-label">Select a date to view your day</div>
+      <div class="calendar-legend"><span><i style="background:#DDF4E4;border:1px solid #28A653"></i>Task completed</span><span><i style="background:#FCE3E3;border:1px solid #D64545"></i>Task skipped</span></div>
+      <div class="card" id="calendar-day-report" style="margin-top:12px; padding:14px; background:#fbf9ff;">
+        <strong id="calendar-report-title">Today's mood report</strong>
+        <div id="calendar-report-content" style="margin-top:8px; color:var(--text-muted);">Your selected day's mood and activity report will appear here.</div>
+      </div>
+    </div>
+    <div class="card" style="background: linear-gradient(135deg, var(--sage-dark), var(--sage)); color:#fff;">
+      <p style="font-size:0.8rem; opacity:0.85;">Welcome back, Student</p>
+      <h2 style="color:#fff; font-size:1.35rem; margin:4px 0;">Stronger Mind. Better You.</h2>
+      <p style="font-size:0.85rem; opacity:0.9;">Take 2 minutes to check in with your emotions and pace your study energy.</p>
+    </div>
+
+    <!-- Feature 1: Daily Mood Tracker -->
+    <div class="card">
+      <div class="card-header">
+        <h2>1. Daily Mood Tracker</h2>
+        <span class="tag">Check-In</span>
+      </div>
+      <p class="sub">How are you feeling right now? Select an emotion and record what caused it.</p>
+      <div class="mood-grid">
+        <div class="mood-btn" onclick="selectMood('Happy', 95, this)"><span>😊</span><small>Happy</small></div>
+        <div class="mood-btn" onclick="selectMood('Calm', 85, this)"><span>😌</span><small>Calm</small></div>
+        <div class="mood-btn" onclick="selectMood('Tired', 55, this)"><span>😴</span><small>Tired</small></div>
+        <div class="mood-btn" onclick="selectMood('Anxious', 35, this)"><span>😰</span><small>Anxious</small></div>
+        <div class="mood-btn" onclick="selectMood('Angry', 30, this)"><span>😠</span><small>Angry</small></div>
+        <div class="mood-btn" onclick="selectMood('Sad', 25, this)"><span>😢</span><small>Sad</small></div>
+      </div>
+      <select id="mood-trigger">
+        <option value="Upcoming examination">Trigger: Upcoming examination / study load</option>
+        <option value="Homesickness or missing family">Trigger: Homesickness / missing family</option>
+        <option value="Sleep disturbance">Trigger: Lack of sleep / fatigue</option>
+        <option value="Positive study progress">Trigger: Good study progress / self-care</option>
+        <option value="Personal or social stress">Trigger: Personal / social relationship</option>
+      </select>
+      <button class="btn" onclick="logMood()">Save Today's Mood</button>
+      <div class="alert-box" id="mood-feedback"></div>
+
+      <div class="chart-wrap">
+        <div class="bar-col"><div class="bar-fill" style="height:65%"></div><span>Mon</span></div>
+        <div class="bar-col"><div class="bar-fill" style="height:80%"></div><span>Tue</span></div>
+        <div class="bar-col"><div class="bar-fill" style="height:45%"></div><span>Wed</span></div>
+        <div class="bar-col"><div class="bar-fill" style="height:70%"></div><span>Thu</span></div>
+        <div class="bar-col"><div class="bar-fill" id="fri-bar" style="height:60%; background:var(--coffee);"></div><span>Fri</span></div>
+        <div class="bar-col"><div class="bar-fill" style="height:20%; opacity:0.3;"></div><span>Sat</span></div>
+        <div class="bar-col"><div class="bar-fill" style="height:20%; opacity:0.3;"></div><span>Sun</span></div>
+      </div>
+    </div>
+
+    <!-- Special Feature 5: Daily 5-Minute Student Challenge -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Daily 5-Minute Challenge</h2>
+        <span class="tag">Student Corner</span>
+      </div>
+      <p class="sub">Complete small daily habits to build emotional resilience during university.</p>
+      <div id="challenge-question-list">
+        <div class="challenge-item"><input type="checkbox" onchange="toggleChallenge(this)"> <span><strong>Day 1:</strong> Write three things you are grateful for today.</span></div>
+        <div class="challenge-item"><input type="checkbox" onchange="toggleChallenge(this)"> <span><strong>Day 2:</strong> Practise 2 minutes of deep paced breathing.</span></div>
+        <div class="challenge-item"><input type="checkbox" onchange="toggleChallenge(this)"> <span><strong>Day 3:</strong> Take a 20-minute break away from social media.</span></div>
+        <div class="challenge-item"><input type="checkbox" onchange="toggleChallenge(this)"> <span><strong>Day 4:</strong> Identify one emotional trigger without judging it.</span></div>
+        <div class="challenge-item"><input type="checkbox" onchange="toggleChallenge(this)"> <span><strong>Day 5:</strong> Practise compassionate positive self-talk.</span></div>
+      </div>
+      <button class="btn btn-outline" type="button" onclick="toggleChallengeEditor()">✏️ Edit / Add Questions</button>
+      <div id="challenge-editor" style="display:none;margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:14px;background:#fbf9ff;">
+        <strong>Edit existing questions or add new ones</strong>
+        <div id="challenge-edit-list"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+          <input id="challenge-new-question" type="text" placeholder="Type a new challenge question..." style="flex:1;min-width:180px;">
+          <button class="btn btn-coffee" type="button" onclick="addChallengeQuestion()">+ Add</button>
+        </div>
+        <button class="btn btn-outline" type="button" onclick="saveChallengeQuestions()" style="width:100%;margin-top:10px;">Save Changes</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SCREEN 2: TOOLS (ANXIETY, STRESS, BURNOUT, EMOTIONS, RELAX) ==================== -->
+  <section id="screen-tools" class="screen">
+    <div class="page-intro tools-intro"><div class="page-intro-icon">🧘</div><div><span class="page-kicker">RESET & RECHARGE</span><h1>Wellness Tools</h1><p>Simple exercises to help you feel calmer and more focused.</p></div></div>
+    <div class="sub-tabs">
+      <button class="sub-tab active" onclick="switchTool('tool-anxiety', this)">2. Anxiety & Relax</button>
+      <button class="sub-tab" onclick="switchTool('tool-stress', this)">3. Stress & Burnout</button>
+      <button class="sub-tab" onclick="switchTool('tool-emotions', this)">5. Emotion Wheel</button>
+      <button class="sub-tab" onclick="switchTool('tool-assess', this)">Self-Assessment</button>
+      <button class="sub-tab" onclick="switchTool('tool-game', this)">Scenario Game</button>
+      <button class="sub-tab" onclick="switchTool('tool-focus', this)">⏱ Study Focus</button>
+      <button class="sub-tab" onclick="switchTool('tool-meditation', this)">🧘 Meditation</button>
+      <button class="sub-tab" onclick="switchTool('tool-sleep', this)">🌙 Sleep Relax</button>
+    </div>
+
+    <!-- Features 2 & 7: Anxiety Relief Zone + Relaxation Corner -->
+    <div class="tool-panel active" id="tool-anxiety">
+      <div class="card">
+        <div class="card-header">
+          <h2>2 & 7. Guided Breathing & Sound</h2>
+          <span class="tag">Relaxation Corner</span>
+        </div>
+        <p class="sub">Follow the 4-4-4 breathing rhythm and play soothing ambient frequencies.</p><div class="alert-box" style="display:block"><strong>What is Guided Breathing?</strong><br>A simple breathing practice that may help you slow down and settle when you feel tense. <strong>How to do it:</strong> breathe in gently for 4 counts, hold comfortably for 4 counts, then breathe out gently for 4 counts. Repeat at your own comfortable pace. Do not force or hold your breath if it feels uncomfortable.<br><strong>Relaxation Sound:</strong> choose Calm or Sleep to hear a soft tone; press Stop whenever you want. Keep the volume low.</div>
+        <div class="breath-circle" id="breath-circle">Ready</div>
+        <button class="btn" onclick="startBreathing()">Start Guided Breathing</button>
+
+        <div style="display:flex; gap:8px; margin-top:12px;">
+          <button class="btn btn-outline" onclick="playTone(174)">🌿 Calm (174Hz)</button>
+          <button class="btn btn-outline" onclick="playTone(432)">🌧️ Sleep (432Hz)</button>
+          <button class="btn btn-coffee" style="width:auto;" onclick="stopTone()">⏹</button>
+        </div>
+        <div class="alert-box" id="sound-status"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>5-4-3-2-1 Grounding Exercise</h3>
+          <span class="tag">Bring your focus to now</span>
+        </div>
+        <p class="sub">Feeling worried, stressed, or overwhelmed? Take a slow breath and use your five senses to notice the world around you. There is no right or wrong answer.</p>
+        <div class="challenge-item" style="display:block; margin:12px 0;">
+          <strong>👀 5 things you can SEE</strong>
+          <p class="sub">Look around and name five things you can see.</p>
+          <input type="text" id="ground-see" placeholder="Example: a book, a window, a tree..." />
+        </div>
+        <div class="challenge-item" style="display:block; margin:12px 0;">
+          <strong>✋ 4 things you can TOUCH</strong>
+          <p class="sub">Notice four things you can touch and how they feel.</p>
+          <input type="text" id="ground-touch" placeholder="Example: my chair, my clothes, a table..." />
+        </div>
+        <div class="challenge-item" style="display:block; margin:12px 0;">
+          <strong>👂 3 things you can HEAR</strong>
+          <p class="sub">Pause and listen for three different sounds.</p>
+          <input type="text" id="ground-hear" placeholder="Example: birds, a fan, people talking..." />
+        </div>
+        <div class="challenge-item" style="display:block; margin:12px 0;">
+          <strong>👃 2 things you can SMELL</strong>
+          <p class="sub">Notice two smells around you. If you cannot smell anything, think of two familiar pleasant smells.</p>
+          <input type="text" id="ground-smell" placeholder="Example: flowers, fresh food..." />
+        </div>
+        <div class="challenge-item" style="display:block; margin:12px 0;">
+          <strong>👅 1 thing you can TASTE</strong>
+          <p class="sub">Notice the taste in your mouth, or take a sip of water and notice its taste.</p>
+          <input type="text" id="ground-taste" placeholder="Example: water, mint, or the taste in my mouth..." />
+        </div>
+        <p class="sub">Take your time. Breathe gently. You can leave any step blank if it is difficult.</p>
+        <button class="btn btn-coffee" onclick="saveGrounding()">Complete Grounding</button>
+        <div class="alert-box" id="ground-feedback"></div>
+      </div>
+    </div>
+
+    <!-- Features 3 & 4: Stress Management Centre & Burnout Prevention -->
+    <div class="tool-panel" id="tool-stress">
+      <div class="card">
+        <div class="card-header">
+          <h2>3. Stress Management Centre</h2>
+          <span class="tag">Student Focus</span>
+        </div>
+        <p class="sub">Turn overwhelming study pressure into one clear, achievable micro-step.</p><div class="alert-box" style="display:block"><strong>What is Stress Management?</strong><br>It helps you break a large or stressful task into a small step that feels manageable. <strong>How to use it:</strong> type one task you can do now (for example, revise 5 pages), tap Add Priority Step, and tick it when finished. Start with one step instead of worrying about everything at once.</div>
+        <input type="text" id="stress-task-input" placeholder="e.g., Revise 10 anatomy flashcards, drink water..." />
+        <button class="btn" onclick="addMicroTask()">Add Priority Step</button>
+        <div id="micro-task-list" style="margin-top:12px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>4. Burnout Warning-Sign Checklist</h2>
+          <span class="tag">Balance Tracker</span>
+        </div>
+        <p class="sub">Check any warning signs you noticed this week:</p><div class="alert-box" style="display:block"><strong>What is the Burnout Warning-Sign Checklist?</strong><br>Burnout can happen when ongoing pressure leaves you exhausted or disconnected. This checklist is a reflection tool, not a diagnosis. <strong>How to use it:</strong> select the signs you have noticed this week, then tap Check Burnout Load. Use the feedback as a reminder to rest, eat, hydrate, take breaks, and seek support if difficulties continue.</div>
+        <div class="challenge-item"><input type="checkbox" class="burnout-chk"> <span>Difficulty concentrating or retaining study material</span></div>
+        <div class="challenge-item"><input type="checkbox" class="burnout-chk"> <span>Feeling emotionally drained even after sleeping</span></div>
+        <div class="challenge-item"><input type="checkbox" class="burnout-chk"> <span>Skipping meals, water breaks, or fresh air</span></div>
+        <div class="challenge-item"><input type="checkbox" class="burnout-chk"> <span>Irritability or feeling detached from friends/family</span></div>
+        <button class="btn btn-coffee" onclick="evaluateBurnout()">Check Burnout Load</button>
+        <div class="alert-box" id="burnout-result"></div>
+      </div>
+    </div>
+
+    <!-- Feature 5: Emotional Regulation Studio -->
+    <div class="tool-panel" id="tool-emotions">
+      <div class="card">
+        <div class="card-header">
+          <h2>5. Emotional Regulation Studio</h2>
+          <span class="tag">Emotion Wheel</span>
+        </div>
+        <p class="sub">Tap the specific feeling below to learn how to respond rather than react:</p><div class="alert-box" style="display:block"><strong>What is the Emotion Wheel?</strong><br>It helps you name a feeling and choose a helpful next step. <strong>How to use it:</strong> choose the emotion that is closest to what you feel right now, read the suggestion, and try it gently. You do not have to choose a perfect label; feelings can overlap.</div>
+        <div class="chip-wrap">
+          <div class="chip" onclick="selectWheel('Exam Fear', 'Fear of failure is normal. Focus only on the next 15 minutes of study rather than the whole syllabus.', this)">Exam Fear</div>
+          <div class="chip" onclick="selectWheel('Homesick', 'Missing home means you care deeply. Call or voice-note family, then take a short outdoor walk.', this)">Homesick</div>
+          <div class="chip" onclick="selectWheel('Anger / Impulse', 'Pause for 10 seconds before replying. Wash your face with cool water to reset your nervous system.', this)">Anger / Impulse</div>
+          <div class="chip" onclick="selectWheel('Overwhelmed', 'Drop non-urgent tasks today. Pick just ONE priority and celebrate finishing it.', this)">Overwhelmed</div>
+          <div class="chip" onclick="selectWheel('Self-Doubt', 'Remind yourself how far you have come in your university journey. Progress is not linear.', this)">Self-Doubt</div>
+        </div>
+        <div class="alert-box" id="wheel-output" style="display:block;">Tap an emotion above to view your regulation strategy.</div>
+      </div>
+    </div>
+
+    <!-- Special Feature 3: Psychological Self-Assessment -->
+    <div class="tool-panel" id="tool-assess">
+      <div class="card">
+        <div class="card-header">
+          <h2>Educational Self-Assessment</h2>
+          <span class="tag">PSS / GAD-7 Inspired</span>
+        </div>
+        <div class="alert-box" style="display:block"><strong>What is Self-Assessment?</strong><br>This short educational check-in helps you reflect on recent stress and worry. It is not a medical test or diagnosis. Answer honestly based on how you have felt over the last 7 days, choose the closest option for each question, and tap View Educational Feedback. If your feelings are intense or affecting daily life, consider speaking with a trusted adult or qualified counsellor.</div><p class="sub">Over the last 7 days, how often have you felt nervous, anxious, or unable to stop worrying?</p>
+        <select id="q-gad">
+          <option value="0">Not at all (0 pts)</option>
+          <option value="1">Several days (1 pt)</option>
+          <option value="2">More than half the days (2 pts)</option>
+          <option value="3">Nearly every day (3 pts)</option>
+        </select>
+        <p class="sub" style="margin-top:8px;">How often have you felt difficulties were piling up so high you could not overcome them?</p>
+        <select id="q-pss">
+          <option value="0">Never / Almost never (0 pts)</option>
+          <option value="1">Sometimes (1 pt)</option>
+          <option value="2">Fairly often (2 pts)</option>
+          <option value="3">Very often (3 pts)</option>
+        </select>
+        <button class="btn" onclick="scoreAssessment()">View Educational Feedback</button>
+        <div class="alert-box" id="assess-result"></div>
+        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:10px;">*Note: This educational screening tool promotes self-awareness and is not a clinical medical diagnosis.</p>
+      </div>
+    </div>
+
+    <!-- Special Feature 4: Interactive Psychology Game -->
+    <div class="tool-panel" id="tool-game">
+      <div class="card">
+        <div class="card-header">
+          <h2>What Would You Do?</h2>
+          <span class="tag">Psychology Game</span>
+        </div>
+        <div class="alert-box" style="display:block"><strong>What is the Scenario Game?</strong><br>It gives you a real-life style situation to practise thoughtful responses. Read the situation, choose the response you would most likely take, and review the feedback. The aim is to pause, consider different explanations, and respond calmly—not to get a perfect score.</div><p class="sub"><strong>Scenario:</strong> You are stressed before a big exam, and your close friend leaves your message on "Seen" without replying. What do you do?</p>
+        <button class="sos-option" onclick="answerGame('A')">A. Immediately get angry and send an upset text.</button>
+        <button class="sos-option" onclick="answerGame('B')">B. Assume they are busy studying and wait calmly.</button>
+        <button class="sos-option" onclick="answerGame('C')">C. Take a breath and check in later: "Hope your day is going okay!"</button>
+        <div class="alert-box" id="game-feedback"></div>
+      </div>
+    </div>
+  </section>
+
+    <div class="tool-panel" id="tool-focus"><div class="card">
+      <div class="card-header"><h2>Study Focus Timer</h2><span class="tag">Custom study plan</span></div>
+      <p class="sub">Set your own study and break duration. When one session ends, the next one starts automatically.</p><div class="alert-box" style="display:block"><strong>What is the Study Focus Timer?</strong><br>It helps you study in focused blocks with planned breaks. <strong>How to use it:</strong> enter how many minutes you want to study and rest, tap Apply Time Settings, then Start. Use Pause if you need to stop briefly, Reset to begin that session again, or Skip Task to move to the next block. When a block ends, the next block starts automatically.</div>
+      <div class="focus-settings" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;">
+        <label style="font-size:.85rem;font-weight:700;">Study minutes
+          <input id="focus-study-minutes" type="number" min="1" max="180" value="25" style="width:100%;margin-top:6px;">
+        </label>
+        <label style="font-size:.85rem;font-weight:700;">Break minutes
+          <input id="focus-break-minutes" type="number" min="1" max="60" value="5" style="width:100%;margin-top:6px;">
+        </label>
+      </div>
+      <button class="btn btn-outline" style="margin-bottom:8px;" onclick="applyFocusSettings()">Apply Time Settings</button>
+      <div id="focus-current-task" style="text-align:center;font-weight:700;color:#6944b5;">Current task: Study Focus</div>
+      <div id="focus-timer-display" style="font-size:3rem;font-weight:800;text-align:center;color:#6944b5;padding:18px 0;">25:00</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn" onclick="startFocusTimer()">Start</button>
+        <button class="btn btn-outline" onclick="pauseFocusTimer()">Pause</button>
+        <button class="btn btn-outline" onclick="resetFocusTimer()">Reset</button>
+        <button class="btn btn-outline" onclick="skipFocusTask()">Skip Task →</button>
+      </div>
+      <p class="sub" id="focus-timer-status" style="text-align:center;margin-top:10px;">Ready when you are.</p>
+    </div></div>
+    <div class="tool-panel" id="tool-meditation"><div class="card">
+      <div class="card-header"><h2>Guided Meditation</h2><span class="tag">Mindful pause</span></div>
+      <p class="sub">Choose a short guided quiet session.</p><div class="alert-box" style="display:block"><strong>What is Guided Meditation?</strong><br>A short quiet pause to notice your breathing and bring attention back to the present. <strong>How to use it:</strong> sit comfortably, select 1, 5, or 10 minutes, and follow the on-screen reminder. Let thoughts come and go without judging yourself. Tap End Session whenever you wish.</div>
+      <div class="chip-wrap"><button class="chip" onclick="startMeditation(1)">1 minute</button><button class="chip" onclick="startMeditation(5)">5 minutes</button><button class="chip" onclick="startMeditation(10)">10 minutes</button></div>
+      <div id="meditation-instruction" class="alert-box">Sit comfortably, relax your shoulders, and notice your natural breath.</div>
+      <div id="meditation-time" style="font-size:2rem;text-align:center;font-weight:800;margin:12px;">Ready</div>
+      <button class="btn btn-outline" onclick="stopMeditation()">End Session</button>
+    </div></div>
+    <div class="tool-panel" id="tool-sleep"><div class="card">
+      <div class="card-header"><h2>Sleep Relaxation</h2><span class="tag">Wind down</span></div>
+      <p class="sub">A gentle bedtime routine to slow down before sleep.</p><div class="alert-box" style="display:block"><strong>What is Sleep Relaxation?</strong><br>A simple wind-down routine to help you shift from study or screen time toward rest. <strong>How to use it:</strong> dim your screen, put away study materials, relax your jaw and shoulders, breathe comfortably for a minute, and think of one good thing from today. Tap the completion button when you finish. This routine supports relaxation but does not treat sleep problems.</div>
+      <ol style="line-height:1.9;padding-left:22px;"><li>Dim your screen and put away study materials.</li><li>Relax your jaw, shoulders and hands.</li><li>Breathe slowly and comfortably for one minute.</li><li>Notice one good thing from today.</li></ol>
+      <button class="btn btn-coffee" onclick="completeSleepRoutine()">I completed my wind-down</button><div id="sleep-routine-status" class="alert-box"></div>
+    </div></div>
+  </section>
+
+  <!-- ==================== SCREEN 3: AI EMOTIONAL COMPANION ==================== -->
+  <section id="screen-companion" class="screen">
+    <div class="page-intro companion-intro"><div class="page-intro-icon">💬</div><div><span class="page-kicker">A SUPPORTIVE SPACE</span><h1>Mindora Companion</h1><p>Share what is on your mind without judgment.</p></div></div>
+    <div class="card">
+      <div class="card-header">
+        <h2>AI Emotional Companion</h2>
+        <span class="tag">Supportive Guide</span>
+      </div>
+      <p class="sub">Share what's on your mind or choose a quick prompt for supportive self-care ideas.</p>
+      <div class="chip-wrap">
+        <button class="chip" type="button" onclick="quickChat('I am stressed about my exams.')">📚 Exam stress</button>
+        <button class="chip" type="button" onclick="quickChat('I feel lonely and homesick.')">💜 Feeling lonely</button>
+        <button class="chip" type="button" onclick="quickChat('I feel anxious and cannot relax.')">🌿 Anxiety</button>
+        <button class="chip" type="button" onclick="quickChat('I am angry and finding it hard to calm down.')">🔥 Anger</button>
+        <button class="chip" type="button" onclick="quickChat('I feel sad today.')">🌧️ Feeling sad</button>
+      </div>
+      <div class="chat-box" id="chat-box">
+        <div class="msg bot">Hi! I'm your Mindora Companion 🌿 How can I support your emotional balance today?</div>
+      </div>
+
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="chat-input" style="margin-bottom:0;" placeholder="Type how you are feeling..." />
+        <button class="btn" style="width:auto;" onclick="sendChat()">Send</button>
+      </div>
+      <button class="btn btn-outline" type="button" onclick="clearCompanionChat()" style="width:auto;padding:8px 12px;margin-top:10px;">Clear chat</button>
+      <p style="font-size:0.74rem;color:var(--text-muted);margin-top:10px;">Demo companion uses pre-written supportive suggestions, not live AI or clinical advice. In an emergency, contact local emergency services or a trusted person.</p>
+    </div>
+  </section>
+
+  <!-- ==================== SCREEN 4: FEATURE 6 - MY SAFE JOURNAL ==================== -->
+  <section id="screen-journal" class="screen">
+    <div class="page-intro journal-intro"><div class="page-intro-icon">📔</div><div><span class="page-kicker">YOUR PRIVATE SPACE</span><h1>My Journal</h1><p>Write freely, reflect, and keep track of your thoughts.</p></div></div>
+    <div class="card" style="background: var(--coffee-light); border-color: #eed9b7;">
+      <h3>✨ Today's Positive Affirmation</h3>
+      <p style="font-size:0.9rem; font-style:italic; color:#5c4728;">"I do not have to solve everything today. Taking one calm, steady step is enough."</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>6. My Safe Journal</h2>
+        <span class="tag" id="lock-badge">Unlocked</span>
+      </div>
+      <p class="sub"><strong>Daily Reflection Prompt:</strong> What is one worry you want to release today, and one small win you are proud of?</p>
+      <textarea id="journal-entry-text" rows="3" placeholder="Write privately here..."></textarea>
+      <button class="btn" onclick="addJournal()">Save Private Entry</button>
+    </div>
+
+    <div id="journal-feed"></div>
+  </section>
+
+  <!-- ==================== SCREEN 5: FEATURE 8 - PROGRESS & SETTINGS ==================== -->
+  <section id="screen-progress" class="screen">
+    <div class="page-intro progress-intro"><div class="page-intro-icon">📊</div><div><span class="page-kicker">YOUR WELLNESS JOURNEY</span><h1>My Progress</h1><p>Notice your patterns and celebrate small steps forward.</p></div></div>
+    <div class="card daily-status-card-progress" id="daily-status-card-progress">
+      <div class="card-header"><h2>Today's Completion</h2><span class="tag" id="daily-status-percent-progress">0% complete</span></div>
+      <div class="daily-progress-track"><div id="daily-progress-fill-progress"></div></div>
+      <p class="sub" id="daily-status-summary-progress">Your daily activity will appear here as you complete it.</p>
+      <div class="daily-status-list-progress" id="daily-status-list-progress"></div>
+      <p class="daily-status-foot">Your progress updates automatically when you save an entry or complete an activity.</p>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h2>8. My Progress Report</h2>
+        <span class="tag">Weekly Summary</span>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-box" style="background:var(--sage-light); color:var(--sage-dark);">
+          <h3 id="rep-moods">5</h3>
+          <p>Mood Check-ins</p>
+        </div>
+        <div class="stat-box" style="background:var(--coffee-light); color:#7f5539;">
+          <h3 id="rep-journals">2</h3>
+          <p>Journal Entries</p>
+        </div>
+        <div class="stat-box" style="background:#EAEBF8; color:#3F3D56;">
+          <h3 id="rep-activities">4</h3>
+          <p>Exercises Done</p>
+        </div>
+        <div class="stat-box" style="background:#F3ECE7; color:#5E503F;">
+          <h3 id="rep-streak">5 Days</h3>
+          <p>Wellness Streak</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Proper Settings & Safety Card -->
+    <div class="card">
+      <div class="card-header">
+        <h2>⚙️ Settings & Privacy Controls</h2>
+        <span class="tag">Academic Safety</span>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <strong>Journal Privacy Lock</strong>
+          <div style="font-size:0.78rem; color:var(--text-muted);">Require 4-digit PIN (1234) to view saved entries</div>
+        </div>
+        <input type="checkbox" id="set-pin" onchange="togglePinLock(this.checked)" style="width:20px; height:20px;" />
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <strong>Daily Study Break Reminder</strong>
+          <div style="font-size:0.78rem; color:var(--text-muted);">Gentle nudge every 45 mins of study</div>
+        </div>
+        <input type="checkbox" checked style="width:20px; height:20px;" />
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <strong>Optional Local Data Storage</strong>
+          <div style="font-size:0.78rem; color:var(--text-muted);">Erase all saved moods & journal data</div>
+        </div>
+        <button class="btn btn-outline" style="width:auto; padding:6px 12px; font-size:0.8rem;" onclick="clearAllData()">Clear Data</button>
+      </div>
+
+      <div style="margin-top:14px; padding:12px; background:var(--sos-bg); border-radius:12px; font-size:0.8rem; color:#842029;">
+        <strong>Professional Support & Disclaimer:</strong> Mindora is an educational student psycho-emotional wellness tool. If you ever experience severe distress or self-harm thoughts, please contact your university counseling center or local emergency helpline immediately.
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SOS PANIC OVERLAY MODAL ==================== -->
+  <div class="modal-overlay" id="sos-modal">
+    <div class="modal-card">
+      <div class="card-header">
+        <h2 style="color:var(--sos-red);">🚨 SOS — I'm Feeling Overwhelmed</h2>
+        <button onclick="closeSOS()" style="border:none; background:none; font-size:1.3rem; cursor:pointer;">✕</button>
+      </div>
+      <p class="sub">Tap what you are experiencing right now for immediate step-by-step support:</p>
+      <button class="sos-option" onclick="sosGuide('panic')">😰 I'm Having a Panic Attack</button>
+      <button class="sos-option" onclick="sosGuide('calm')">🌊 Calm Me Down Right Now</button>
+      <button class="sos-option" onclick="sosGuide('racing')">⚡ My Mind is Racing Before an Exam</button>
+      <div class="alert-box" id="sos-step-box" style="background:var(--sos-bg); color:#721c24;"></div>
+    </div>
+  </div>
+
+  <!-- ==================== BOTTOM FLO-STYLE NAVIGATION BAR ==================== -->
+  <nav class="bottom-nav">
+    <button type="button" class="nav-item active" onclick="goScreen('screen-today', this)">
+      <span class="nav-icon">🌿</span>
+      <span>Today</span>
+    </button>
+    <button type="button" class="nav-item" onclick="goScreen('screen-tools', this)">
+      <span class="nav-icon">🧘</span>
+      <span>Tools</span>
+    </button>
+    <button type="button" class="nav-item" onclick="goScreen('screen-companion', this)">
+      <span class="nav-icon">💬</span>
+      <span>Companion</span>
+    </button>
+    <button type="button" class="nav-item" onclick="goScreen('screen-journal', this)">
+      <span class="nav-icon">📔</span>
+      <span>Journal</span>
+    </button>
+    <button type="button" class="nav-item" onclick="goScreen('screen-progress', this)">
+      <span class="nav-icon">📊</span>
+      <span>Progress</span>
+    </button>
+  </nav>
+
+  
+  </div><!-- /app-shell -->
+
+  <main id="auth-screen" class="auth-layout">
+    <section class="auth-visual">
+      <div class="auth-visual-top"><span class="auth-mark">✿</span><span class="auth-brand">Mindora</span></div>
+      <div class="auth-illustration" aria-hidden="true">
+        <div class="auth-orbit orbit-one"></div><div class="auth-orbit orbit-two"></div>
+        <div class="auth-person">🧘</div><div class="auth-leaf leaf-one">🌿</div><div class="auth-leaf leaf-two">🌱</div>
+      </div>
+      <div class="auth-visual-copy">
+        <span class="auth-kicker">YOUR STUDENT WELLNESS SPACE</span>
+        <h1>Stronger Mind.<br>Better You.</h1>
+        <p>A little pause. A kinder thought. A healthier everyday.</p>
+      </div>
+      <div class="auth-feature-pills"><span>✦ Mood check-ins</span><span>✦ Calm tools</span><span>✦ Private journal</span></div>
+    </section>
+    <section class="auth-form-side">
+      <div class="auth-card">
+        <div class="auth-heading">
+          <div class="auth-mobile-mark">✿</div>
+          <span class="auth-kicker">WELCOME TO MINDORA</span>
+          <h2>Your wellbeing journey<br>starts here.</h2>
+          <p class="auth-muted">Sign in or create your secure account.</p>
+        </div>
+        <div class="auth-tabs">
+          <button type="button" id="student-tab" class="active" onclick="setAuthMode('student')">Student</button>
+          <button type="button" id="admin-tab" onclick="setAuthMode('admin')">Admin</button>
+        </div>
+        <div id="signup-name-wrap">
+          <label for="auth-name">Full name</label>
+          <input id="auth-name" type="text" autocomplete="name" placeholder="Enter your full name">
+          <label for="auth-college" style="display:block;margin-top:12px;">College name</label>
+          <input id="auth-college" type="text" autocomplete="organization" placeholder="Enter your college name">
+          <label for="auth-course" style="display:block;margin-top:12px;">Course / Program</label>
+          <input id="auth-course" type="text" placeholder="e.g. B.A., B.Com., B.Sc., B.Tech., MBA">
+        </div>
+        <label for="auth-email">Email address</label>
+        <input id="auth-email" type="email" autocomplete="username" placeholder="name@example.com">
+        <label for="auth-password">Password</label>
+        <input id="auth-password" type="password" autocomplete="current-password" placeholder="At least 6 characters">
+        <button class="btn auth-primary" id="auth-submit" type="button" onclick="handleAuth()">Create Student Account</button>
+        <button class="btn btn-outline auth-secondary" id="auth-toggle" type="button" style="margin-top:10px;" onclick="toggleAuthView()">Already have an account? Login</button>
+        <button type="button" id="forgot-btn" onclick="resetPassword()" style="display:block;border:0;background:none;color:var(--sage-dark);font-weight:700;margin:15px auto 0;">Forgot password?</button>
+        <button type="button" class="btn btn-outline" onclick="openDashboardPreview()" style="width:100%;margin-top:12px;border-color:#8b6bd0;color:#6848C0;">Preview Dashboard (Demo)</button>
+        <p class="auth-muted" style="text-align:center;margin-top:8px;">Explore the dashboard without creating an account.</p>
+        <div id="auth-message" role="status"></div>
+        <div class="auth-privacy"><span>🔒</span><p class="auth-muted">Your personal wellness information stays associated with your account. Never share your password.</p></div>
+      </div>
+      <p class="auth-bottom-note">Made for student wellbeing <span>•</span> Mindora</p>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script>
+
+  // Each signed-in account has its own Firestore wellness record.
+  let appData = { moods: 0, activities: 0, friScore: 70, pinLocked: false, journals: [] };
+  let currentUser = null;
+  let currentRole = null;
+  let authMode = 'student';
+  let authView = 'signup';
+  let cloudSaveQueue = Promise.resolve();
+
+  let selectedMood = "";
+  let selectedScore = 70;
+  // Mood check-ins are stored by local calendar date (YYYY-MM-DD).
+  appData.moodEntries = Array.isArray(appData.moodEntries) ? appData.moodEntries : [];
+  let audioCtx = null, osc = null;
+
+  function renderDailyTaskStatus() {
+    const todayKey = localDateKey(new Date());
+    const moodDone = (appData.moodEntries || []).some(entry => entry.date === todayKey);
+    const journalDone = (appData.journals || []).some(entry => String(entry.date || '').includes('Today'));
+    const challengeTotal = challengeQuestions.length;
+    const challengeCount = challengeDone.length;
+    const exerciseDone = !!appData.breathingCompletedToday;
+    const tasks = [
+      {name:'Daily mood check-in', detail:moodDone?'Mood saved for today':'Not completed yet', done:moodDone},
+      {name:'5-minute challenge', detail:`${challengeCount} of ${challengeTotal} tasks completed`, done:challengeTotal>0 && challengeCount>=challengeTotal},
+      {name:'Journal entry', detail:journalDone?'At least one entry saved today':'No entry saved today', done:journalDone},
+      {name:'Wellness exercise', detail:exerciseDone?'Exercise completed today':'No exercise completed today', done:exerciseDone}
+    ];
+    const completed = tasks.filter(t=>t.done).length;
+    const percent = Math.round(completed/tasks.length*100);
+    ['','-progress'].forEach(suffix=>{
+      const pct=document.getElementById('daily-status-percent'+suffix);
+      const fill=document.getElementById('daily-progress-fill'+suffix);
+      const summary=document.getElementById('daily-status-summary'+suffix);
+      const list=document.getElementById('daily-status-list'+suffix);
+      if(!pct||!fill||!summary||!list) return;
+      pct.textContent=percent+'% complete';
+      fill.style.width=percent+'%';
+      summary.textContent=`${completed} of ${tasks.length} daily activities completed`;
+      list.innerHTML='';
+      tasks.forEach(task=>{
+        const row=document.createElement('div');
+        row.className='daily-status-row'+(task.done?' done':'');
+        const icon=document.createElement('span');
+        icon.className='daily-status-icon';
+        icon.textContent=task.done?'✓':'•';
+        const text=document.createElement('div');
+        text.innerHTML=`<strong>${escapeHTML(task.name)}</strong><small>${escapeHTML(task.detail)}</small>`;
+        row.append(icon,text);
+        list.appendChild(row);
+      });
+    });
+  }
+
+  function syncUI() {
+    document.getElementById('rep-moods').innerText = appData.moods;
+    document.getElementById('rep-journals').innerText = appData.journals.length;
+    document.getElementById('rep-activities').innerText = appData.activities;
+    document.getElementById('fri-bar').style.height = appData.friScore + "%";
+    document.getElementById('set-pin').checked = appData.pinLocked;
+    document.getElementById('lock-badge').innerText = appData.pinLocked ? "PIN Protected" : "Private";
+    renderJournals();
+    renderDailyTaskStatus();
+    if (currentUser) {
+      cloudSaveQueue = cloudSaveQueue.catch(() => {}).then(() =>
+        db.collection('users').doc(currentUser.uid).collection('privateData').doc('main')
+          .set({ ...appData, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
+      ).catch(err => showAuthMessage('Cloud save failed: ' + friendlyError(err), true));
+    }
+  }
+
+  // Unlimited Scrollable Calendar Strip Generator
+  function generateUnlimitedCalendar() {
+    const strip = document.querySelector('.day-strip');
+    if (!strip) return;
+    strip.innerHTML = '';
+    
+    // Allow horizontal scrolling for unlimited past/future days
+    strip.style.overflowX = 'auto';
+    strip.style.scrollBehavior = 'smooth';
+    strip.style.paddingBottom = '4px';
+
+    const today = new Date();
+    
+    // Generate 30 days in the past and 30 days in the future (unlimited browsing)
+    for (let i = -30; i <= 30; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      
+      const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+      const dateNum = d.getDate();
+      const isToday = i === 0;
+      
+      const pill = document.createElement('div');
+      pill.className = `day-pill ${isToday ? 'today' : ''}`;
+      pill.style.minWidth = '42px';
+      pill.style.flexShrink = '0';
+      pill.innerHTML = `<span>${dayName}</span><strong>${dateNum}</strong>${isToday ? '<div class="day-dot"></div>' : ''}`;
+      strip.appendChild(pill);
+    }
+  }
+
+  // Bottom Navigation Switcher — robust for touch and keyboard activation.
+  function goScreen(id, btn) {
+    const target = document.getElementById(id);
+    if (!target || !target.classList.contains('screen')) {
+      console.error('Mindora navigation target not found:', id);
+      return false;
+    }
+    if (id === 'screen-journal' && appData && appData.pinLocked) {
+      const pin = prompt("Enter your 4-digit Journal PIN:");
+      if (pin !== "1234") {
+        alert("Incorrect PIN. Access denied.");
+        return false;
+      }
+    }
+    document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s === target));
+    document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.toggle('active', n === btn));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return true;
+  }
+  window.goScreen = goScreen;
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.bottom-nav .nav-item').forEach(function (button) {
+      button.addEventListener('click', function () {
+        const match = (button.getAttribute('onclick') || '').match(/goScreen\('(screen-[^']+)'/);
+        if (match) goScreen(match[1], button);
+      });
+    });
+  });
+
+  function switchTool(panelId, btn) {
+    document.querySelectorAll('.tool-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(panelId).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // Add a consistent Skip / Next step control to every Wellness Tool card.
+  function getToolPanels() {
+    return Array.from(document.querySelectorAll('#screen-tools .tool-panel'));
+  }
+
+  function activateToolPanel(panel) {
+    if (!panel) return;
+    document.querySelectorAll('#screen-tools .tool-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('#screen-tools .sub-tab').forEach(t => t.classList.remove('active'));
+    panel.classList.add('active');
+    const panelId = panel.id;
+    const tab = Array.from(document.querySelectorAll('#screen-tools .sub-tab')).find(t => (t.getAttribute('onclick') || '').includes("'" + panelId + "'"));
+    if (tab) tab.classList.add('active');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function getTodayTaskKey() { return localDateKey(new Date()); }
+  function recordToolDayStatus(status) {
+    appData.calendarTaskStatus = appData.calendarTaskStatus || {};
+    const key = getTodayTaskKey();
+    const record = appData.calendarTaskStatus[key] || { completed: 0, skipped: 0 };
+    record[status] = (Number(record[status]) || 0) + 1;
+    appData.calendarTaskStatus[key] = record;
+    syncUI();
+    renderMindoraCalendar();
+  }
+  function completeToolStep(button) {
+    recordToolDayStatus('completed');
+    const currentCard = button.closest('.card');
+    const currentPanel = button.closest('.tool-panel');
+    if (currentCard && currentPanel) {
+      const cards = Array.from(currentPanel.querySelectorAll(':scope > .card, :scope > div.card'));
+      const nextCard = cards[cards.indexOf(currentCard) + 1];
+      if (nextCard) { nextCard.scrollIntoView({behavior:'smooth', block:'start'}); return; }
+      const panels = getToolPanels();
+      const nextPanel = panels[panels.indexOf(currentPanel) + 1];
+      if (nextPanel) { activateToolPanel(nextPanel); return; }
+    }
+    alert('Step completed! Your calendar has been updated.');
+  }
+
+  function skipToNextToolStep(button) {
+    recordToolDayStatus('skipped');
+    const currentCard = button.closest('.card');
+    const currentPanel = button.closest('.tool-panel');
+    if (!currentPanel) return;
+    const cards = Array.from(currentPanel.querySelectorAll(':scope > .card, :scope > div.card'));
+    const cardIndex = cards.indexOf(currentCard);
+    const nextCard = cardIndex >= 0 ? cards[cardIndex + 1] : null;
+    if (nextCard) {
+      nextCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    const panels = getToolPanels();
+    const nextPanel = panels[panels.indexOf(currentPanel) + 1];
+    if (nextPanel) activateToolPanel(nextPanel);
+    else {
+      const firstPanel = panels[0];
+      activateToolPanel(firstPanel);
+      const status = document.createElement('div');
+      status.className = 'alert-box';
+      status.style.display = 'block';
+      status.textContent = 'You have reached the end of the Wellness Tools. You can revisit any exercise whenever you need.';
+      firstPanel.prepend(status);
+      setTimeout(() => status.remove(), 5000);
+    }
+  }
+
+  function addToolStepSkipButtons() {
+    document.querySelectorAll('#screen-tools .tool-panel .card').forEach(card => {
+      if (card.querySelector('.tool-step-nav')) return;
+      const nav = document.createElement('div');
+      nav.className = 'tool-step-nav';
+      const doneBtn = document.createElement('button');
+      doneBtn.type = 'button';
+      doneBtn.className = 'btn';
+      doneBtn.textContent = 'Mark completed ✓';
+      doneBtn.setAttribute('aria-label', 'Mark this wellness step as completed');
+      doneBtn.addEventListener('click', function () { completeToolStep(this); });
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn btn-outline';
+      btn.textContent = 'Skip this step →';
+      btn.setAttribute('aria-label', 'Skip this step and go to the next wellness activity');
+      btn.addEventListener('click', function () { skipToNextToolStep(this); });
+      nav.append(doneBtn, btn);
+      card.appendChild(nav);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', addToolStepSkipButtons);
+
+  // Mood Tracker
+  function selectMood(mood, score, el) {
+    selectedMood = mood;
+    selectedScore = score;
+    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function localDateKey(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function logMood() {
+    const today = new Date();
+    if (localDateKey(calendarSelectedDate) !== localDateKey(today)) {
+      alert("Mood check-in is available only for today. You can view past reports, but cannot add or edit moods for another date.");
+      return;
+    }
+    if (!selectedMood) { alert("Please tap a mood icon first."); return; }
+    const trig = document.getElementById('mood-trigger').value;
+    const key = localDateKey(today);
+    const entry = {
+      date: key,
+      mood: selectedMood,
+      score: selectedScore,
+      trigger: trig,
+      savedAt: new Date().toISOString()
+    };
+    const existingIndex = appData.moodEntries.findIndex(item => item.date === key);
+    if (existingIndex >= 0) appData.moodEntries[existingIndex] = entry;
+    else appData.moodEntries.push(entry);
+    appData.moods = appData.moodEntries.length;
+    appData.friScore = selectedScore;
+    syncUI();
+    const fb = document.getElementById('mood-feedback');
+    fb.style.display = "block";
+    fb.innerText = `Recorded: ${selectedMood} (${trig}). Today's report is updated.`;
+    renderMindoraCalendar();
+  renderChallengeQuestions();
+  renderDailyTaskStatus();
+  }
+
+  const defaultChallengeQuestions = [
+    "Write three things you are grateful for today.",
+    "Practise 2 minutes of deep paced breathing.",
+    "Take a 20-minute break away from social media.",
+    "Identify one emotional trigger without judging it.",
+    "Practise compassionate positive self-talk."
+  ];
+  let challengeQuestions = defaultChallengeQuestions.slice();
+  let challengeAnswers = [];
+  let challengeDone = [];
+
+  function renderChallengeQuestions() {
+    const list = document.getElementById('challenge-question-list');
+    list.innerHTML = '';
+    challengeQuestions.forEach((q, i) => {
+      const row = document.createElement('div');
+      row.className = 'challenge-item';
+      const label = document.createElement('span');
+      const strong = document.createElement('strong');
+      strong.textContent = `Day ${i + 1}: `;
+      label.append(strong, document.createTextNode(q));
+      const check = document.createElement('input');
+      check.type = 'checkbox';
+      check.checked = challengeDone.includes(i);
+      check.onchange = () => toggleChallenge(check, i);
+      row.append(check, label);
+      const answerWrap = document.createElement('div');
+      answerWrap.style.cssText = 'margin:8px 0 14px 30px;';
+      const answerLabel = document.createElement('label');
+      answerLabel.textContent = 'Your answer';
+      answerLabel.style.cssText = 'display:block;font-weight:600;font-size:.88rem;margin-bottom:6px;';
+      const answer = document.createElement('textarea');
+      answer.rows = 2;
+      answer.placeholder = 'Write your answer here...';
+      answer.value = challengeAnswers[i] || '';
+      answer.style.cssText = 'width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--border);border-radius:10px;font:inherit;resize:vertical;background:#fff;';
+      answer.addEventListener('input', () => { challengeAnswers[i] = answer.value; });
+      const saveAnswer = document.createElement('button');
+      saveAnswer.type = 'button';
+      saveAnswer.className = 'btn btn-outline';
+      saveAnswer.textContent = 'Save Answer';
+      saveAnswer.style.cssText = 'margin-top:7px;padding:7px 12px;';
+      saveAnswer.addEventListener('click', () => {
+        challengeAnswers[i] = answer.value;
+        saveAnswer.textContent = 'Saved ✓';
+        setTimeout(() => saveAnswer.textContent = 'Save Answer', 1300);
+      });
+      answerWrap.append(answerLabel, answer, saveAnswer);
+      list.append(row, answerWrap);
+    });
+  }
+
+  function toggleChallengeEditor() {
+    const panel = document.getElementById('challenge-editor');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    renderChallengeEditor();
+  }
+
+  function renderChallengeEditor() {
+    const list = document.getElementById('challenge-edit-list');
+    list.innerHTML = '';
+    challengeQuestions.forEach((q, i) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:8px;margin:8px 0;align-items:center;';
+      const input = document.createElement('input');
+      input.value = q;
+      input.dataset.index = i;
+      input.style.flex = '1';
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'btn btn-outline';
+      remove.textContent = 'Remove';
+      remove.onclick = () => {
+        challengeQuestions.splice(i, 1);
+        renderChallengeEditor();
+      };
+      row.append(input, remove);
+      list.appendChild(row);
+    });
+  }
+
+  function addChallengeQuestion() {
+    const input = document.getElementById('challenge-new-question');
+    if (!input.value.trim()) { alert('Please enter a question.'); return; }
+    challengeQuestions.push(input.value.trim());
+    input.value = '';
+    renderChallengeEditor();
+  }
+
+  function saveChallengeQuestions() {
+    const edited = [...document.querySelectorAll('#challenge-edit-list input[data-index]')]
+      .map(input => input.value.trim()).filter(Boolean);
+    if (!edited.length) { alert('Keep at least one question.'); return; }
+    challengeQuestions = edited;
+    renderChallengeQuestions();
+    alert('Questions updated.');
+  }
+
+  function toggleChallenge(cb, index) {
+    if (cb.checked && !challengeDone.includes(index)) challengeDone.push(index);
+    if (!cb.checked) challengeDone = challengeDone.filter(i => i !== index);
+    appData.activities = challengeDone.length + (appData.breathingCompletedToday ? 1 : 0);
+    renderDailyTaskStatus();
+    syncUI();
+  }
+
+  // Breathing & Audio
+  function startBreathing() {
+    const c = document.getElementById('breath-circle');
+    c.innerText = "Inhale (4s)...";
+    c.classList.add('expand');
+    setTimeout(() => { c.innerText = "Hold (4s)..."; }, 4000);
+    setTimeout(() => { c.innerText = "Exhale (4s)..."; c.classList.remove('expand'); }, 8000);
+    setTimeout(() => {
+      c.innerText = "Done ✨";
+      appData.breathingCompletedToday = true;
+      appData.activities = challengeDone.length + 1;
+      syncUI();
+    }, 12000);
+  }
+
+  function playTone(hz) {
+    stopTone();
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(hz, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    const st = document.getElementById('sound-status');
+    st.style.display = "block";
+    st.innerText = `Playing ${hz}Hz relaxation sound...`;
+  }
+
+  function stopTone() {
+    if (osc) { osc.stop(); osc.disconnect(); osc = null; }
+    if (audioCtx) { audioCtx.close(); audioCtx = null; }
+    document.getElementById('sound-status').style.display = "none";
+  }
+
+  function saveGrounding() {
+    const ids = ['ground-see', 'ground-touch', 'ground-hear', 'ground-smell', 'ground-taste'];
+    const labels = ['5 things you saw', '4 things you touched', '3 things you heard', '2 things you smelled', '1 thing you tasted'];
+    const answered = ids.filter(id => document.getElementById(id).value.trim()).length;
+    if (!answered) {
+      const fb = document.getElementById('ground-feedback');
+      fb.style.display = "block";
+      fb.innerText = 'Try noticing at least one thing around you, then complete the exercise.';
+      return;
+    }
+    appData.activities += 1;
+    syncUI();
+    const fb = document.getElementById('ground-feedback');
+    fb.style.display = "block";
+    fb.innerText = `Well done. You completed the grounding exercise by noticing ${answered} of the 5 sense prompts. Take one gentle breath and continue when you feel ready.`;
+    ids.forEach(id => { document.getElementById(id).value = ''; });
+  }
+
+  function addMicroTask() {
+    const inp = document.getElementById('stress-task-input');
+    if (!inp.value.trim()) return;
+    const div = document.createElement('div');
+    div.className = "challenge-item";
+    div.innerHTML = `<input type="checkbox" onchange="this.parentElement.style.opacity='0.5'"> <span>${inp.value}</span>`;
+    document.getElementById('micro-task-list').appendChild(div);
+    inp.value = "";
+  }
+
+  function evaluateBurnout() {
+    const checked = document.querySelectorAll('.burnout-chk:checked').length;
+    const res = document.getElementById('burnout-result');
+    res.style.display = "block";
+    if (checked === 0) res.innerText = "Healthy Balance: No major burnout signs selected.";
+    else if (checked <= 2) res.innerText = "Early Fatigue Warning: Take a short break and hydrate.";
+    else res.innerText = "High Burnout Risk: Prioritize rest and recovery tonight.";
+    appData.activities += 1;
+    syncUI();
+  }
+
+  function selectWheel(title, advice, el) {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('wheel-output').innerHTML = `<strong>${title}:</strong> ${advice}`;
+  }
+
+  function scoreAssessment() {
+    const score = parseInt(document.getElementById('q-gad').value) + parseInt(document.getElementById('q-pss').value);
+    const out = document.getElementById('assess-result');
+    out.style.display = "block";
+    out.innerText = `Score: ${score}/6 — Educational screening completed.`;
+  }
+
+  function answerGame(choice) {
+    const fb = document.getElementById('game-feedback');
+    fb.style.display = "block";
+    if (choice === 'A') fb.innerText = "Reacting immediately escalates stress. Pausing helps.";
+    else if (choice === 'B') fb.innerText = "Great cognitive reframing! Assuming benign intent prevents anxiety.";
+    else fb.innerText = "Healthy communication builds strong relationships.";
+  }
+
+  function quickChat(text) {
+    document.getElementById('chat-input').value = text;
+    sendChat();
+  }
+
+  function appendCompanionMessage(text, who) {
+    const box = document.getElementById('chat-box');
+    const bubble = document.createElement('div');
+    bubble.className = 'msg ' + who;
+    bubble.textContent = text;
+    box.appendChild(bubble);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function companionReply(message) {
+    const m = message.toLowerCase();
+    if (/exam|study|result|marks|college|assignment/.test(m))
+      return "Exam pressure can feel heavy. Try one topic for 20 minutes, then take a 5-minute break. What is one manageable topic you can start with?";
+    if (/lonely|alone|homesick|miss/.test(m))
+      return "Feeling lonely can be difficult. Could you message someone you trust or spend a little time with a supportive friend today?";
+    if (/anxious|anxiety|panic|worry|nervous/.test(m))
+      return "Let's slow things down. Breathe in gently for 4 counts and out for 6 counts. Repeat five times, then name one thing you can see, hear and feel.";
+    if (/angry|anger|irritat|furious/.test(m))
+      return "It's okay to notice anger without acting on it. Pause before replying, relax your shoulders, and step away for a moment if you can.";
+    if (/sad|unhappy|cry|low|down/.test(m))
+      return "I'm sorry today feels hard. You don't have to solve everything at once. Try one kind action for yourself, or talk to someone you trust.";
+    if (/stress|overwhelm|pressure/.test(m))
+      return "When everything feels overwhelming, pause and separate what needs attention now from what can wait. Take three slow breaths, then choose one small next step.";
+    return "Thank you for sharing. What feels most important right now? You can tell me a little more, or we can try a short breathing exercise.";
+  }
+
+  function sendChat() {
+    const inp = document.getElementById('chat-input');
+    const msg = inp.value.trim();
+    if (!msg) return;
+    appendCompanionMessage(msg, 'user');
+    inp.value = "";
+    setTimeout(() => appendCompanionMessage(companionReply(msg), 'bot'), 250);
+  }
+
+  function quickChat(message) {
+    document.getElementById('chat-input').value = message;
+    sendChat();
+  }
+
+  function clearCompanionChat() {
+    const box = document.getElementById('chat-box');
+    box.innerHTML = '';
+    appendCompanionMessage("Hi! I'm your Mindora Companion 🌿 How can I support your emotional balance today?", 'bot');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const chatInput = document.getElementById('chat-input');
+    if (chatInput) chatInput.addEventListener('keydown', event => {
+      if (event.key === 'Enter') { event.preventDefault(); sendChat(); }
+    });
+  });
+
+  function addJournal() {
+    const txt = document.getElementById('journal-entry-text').value.trim();
+    if (!txt) return;
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    appData.journals.unshift({ date: `Today, ${time}`, text: txt });
+    document.getElementById('journal-entry-text').value = "";
+    syncUI();
+  }
+
+  function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+
+  function renderJournals() {
+    const feed = document.getElementById('journal-feed');
+    feed.innerHTML = "";
+    appData.journals.forEach((j, idx) => {
+      feed.innerHTML += `
+        <div class="card" style="padding:16px;">
+          <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-bottom:6px;">
+            <span>${escapeHTML(j.date)}</span>
+            <span style="color:var(--sos-red); cursor:pointer; font-weight:700;" onclick="deleteJournal(${idx})">Delete</span>
+          </div>
+          <p style="font-size:0.88rem;">${escapeHTML(j.text)}</p>
+        </div>
+      `;
+    });
+  }
+
+  function deleteJournal(idx) {
+    appData.journals.splice(idx, 1);
+    syncUI();
+  }
+
+  function openSOS() { document.getElementById('sos-modal').classList.add('open'); }
+  function closeSOS() { document.getElementById('sos-modal').classList.remove('open'); }
+  function sosGuide(type) {
+    const box = document.getElementById('sos-step-box');
+    box.style.display = "block";
+    box.innerHTML = "<strong>Guidance:</strong> Breathe in slowly for 4 seconds, hold, and release to calm your nervous system.";
+  }
+
+  function togglePinLock(val) {
+    appData.pinLocked = val;
+    syncUI();
+  }
+
+  function clearAllData() {
+    if (confirm("Erase all data on this device?")) {
+      appData = { moods: 0, activities: 0, friScore: 70, pinLocked: false, journals: [] };
+      syncUI();
+    }
+  }
+
+  function generateUnlimitedCalendar() {
+  const strip = document.querySelector('.day-strip');
+  if (!strip) return;
+  strip.innerHTML = '';
+  
+  strip.style.display = 'flex';
+  strip.style.overflowX = 'auto';
+  strip.style.scrollBehavior = 'smooth';
+  strip.style.gap = '10px';
+  strip.style.padding = '4px 0';
+  strip.style.whiteSpace = 'nowrap';
+  strip.style.webkitOverflowScrolling = 'touch';
+
+  const today = new Date();
+  
+  // Generate 150 days in the past and 150 days in the future for smooth unlimited scrolling
+  for (let i = -150; i <= 150; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    
+    const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+    const dateNum = d.getDate();
+    const isToday = i === 0;
+    
+    const pill = document.createElement('div');
+    pill.className = `day-pill ${isToday ? 'today' : ''}`;
+    pill.style.minWidth = '45px';
+    pill.style.flexShrink = '0';
+    pill.style.textAlign = 'center';
+    pill.innerHTML = `<span>${dayName}</span><strong>${dateNum}</strong>${isToday ? '<div class="day-dot"></div>' : ''}`;
+    strip.appendChild(pill);
+  }
+}
+generateUnlimitedCalendar();
+
+  // Firebase Authentication + Firestore configuration for the registered Mindora web app.
+  const firebaseConfig = {
+    apiKey: "AIzaSyAjCAra08cg73c6SCkhWZyQxhQhGTlcK_g",
+    authDomain: "mindora-573a3.firebaseapp.com",
+    projectId: "mindora-573a3",
+    storageBucket: "mindora-573a3.firebasestorage.app",
+    messagingSenderId: "16055409743",
+    appId: "1:16055409743:web:1d26403b5fde076f5fde3a",
+    measurementId: "G-B4W0T38ZHD"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  function showAuthMessage(message, isError=false) {
+    const el = document.getElementById('auth-message');
+    el.style.display = 'block';
+    el.classList.toggle('error', isError);
+    el.textContent = message;
+  }
+  function friendlyError(err) {
+    const code = err && err.code ? err.code : '';
+    const messages = {
+      'auth/email-already-in-use':'This email is already registered. Please log in.',
+      'auth/invalid-email':'Please enter a valid email address.',
+      'auth/weak-password':'Password must be at least 6 characters.',
+      'auth/user-not-found':'No account found for this email.',
+      'auth/wrong-password':'Incorrect email or password.',
+      'auth/invalid-credential':'Incorrect email or password.',
+      'auth/too-many-requests':'Too many attempts. Please wait and try again.',
+      'auth/network-request-failed':'Network error. Check your internet connection.',
+      'auth/api-key-not-valid.-please-pass-a-valid-api-key.':'Firebase API key is not valid. The project owner must verify the Web App config.',
+      'permission-denied':'Firestore access is blocked. We need to set secure Firestore Rules next.'
+    };
+    return messages[code] || (err && err.message ? err.message : 'Something went wrong. Please try again.');
+  }
+  function setAuthMode(mode) {
+    authMode = mode;
+    document.getElementById('student-tab').classList.toggle('active', mode === 'student');
+    document.getElementById('admin-tab').classList.toggle('active', mode === 'admin');
+    if (mode === 'admin') {
+      authView = 'login';
+      document.getElementById('signup-name-wrap').style.display = 'none';
+      document.getElementById('auth-submit').textContent = 'Admin Login';
+      document.getElementById('auth-toggle').style.display = 'none';
+      document.getElementById('forgot-btn').style.display = 'block';
+    } else {
+      updateAuthView();
+    }
+    document.getElementById('auth-message').style.display = 'none';
+  }
+  function updateAuthView() {
+    const signup = authView === 'signup' && authMode === 'student';
+    document.getElementById('signup-name-wrap').style.display = signup ? 'block' : 'none';
+    document.getElementById('auth-submit').textContent = signup ? 'Create Student Account' : (authMode === 'admin' ? 'Admin Login' : 'Student Login');
+    document.getElementById('auth-toggle').style.display = authMode === 'student' ? 'block' : 'none';
+    document.getElementById('auth-toggle').textContent = signup ? 'Already have an account? Login' : 'New student? Create account';
+    document.getElementById('forgot-btn').style.display = 'block';
+  }
+  function toggleAuthView() {
+    authView = authView === 'signup' ? 'login' : 'signup';
+    updateAuthView();
+    document.getElementById('auth-message').style.display = 'none';
+  }
+  async function handleAuth() {
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+    const name = document.getElementById('auth-name').value.trim();
+    const college = document.getElementById('auth-college').value.trim();
+    const course = document.getElementById('auth-course').value.trim();
+    const submit = document.getElementById('auth-submit');
+    if (!email || !password) return showAuthMessage('Enter your email and password.', true);
+    if (authView === 'signup' && authMode === 'student' && !name) return showAuthMessage('Enter your full name.', true);
+    if (authView === 'signup' && authMode === 'student' && !college) return showAuthMessage('Enter your college name.', true);
+    if (authView === 'signup' && authMode === 'student' && !course) return showAuthMessage('Enter your course or program.', true);
+    submit.disabled = true;
+    submit.textContent = 'Please wait...';
+    try {
+      if (authView === 'signup' && authMode === 'student') {
+        const credential = await auth.createUserWithEmailAndPassword(email, password);
+        await db.collection('users').doc(credential.user.uid).set({
+          name, college, course, email, role: 'student',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      } else {
+        const credential = await auth.signInWithEmailAndPassword(email, password);
+        const userRef = db.collection('users').doc(credential.user.uid);
+        const profileSnap = await userRef.get();
+        let profile = profileSnap.exists ? profileSnap.data() : null;
+
+        // Accounts added directly in Firebase Console do not automatically get a
+        // Firestore student profile. Create the student's own profile on first login.
+        if (!profile && authMode === 'student') {
+          const safeName = name || (credential.user.email || email).split('@')[0];
+          await userRef.set({
+            name: safeName,
+            email: credential.user.email || email,
+            role: 'student',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          profile = { name: safeName, email: credential.user.email || email, role: 'student' };
+        }
+
+        const role = profile ? profile.role : null;
+        if (authMode === 'admin' && role !== 'admin') {
+          await auth.signOut();
+          throw new Error('This account is not assigned the admin role. Ask the project owner to authorize it.');
+        }
+        if (authMode === 'student' && role !== 'student') {
+          await auth.signOut();
+          throw new Error('This account is not set up as a student. Please contact the project admin.');
+        }
+      }
+    } catch (err) {
+      showAuthMessage(friendlyError(err), true);
+    } finally {
+      submit.disabled = false;
+      updateAuthView();
+    }
+  }
+  async function resetPassword() {
+    const email = document.getElementById('auth-email').value.trim();
+    if (!email) return showAuthMessage('Enter your email address first, then tap Forgot password.', true);
+    try {
+      await auth.sendPasswordResetEmail(email);
+      showAuthMessage('Password reset email sent. Check your inbox.');
+    } catch (err) { showAuthMessage(friendlyError(err), true); }
+  }
+  async function logoutUser() {
+    const button = document.querySelector('.logout-btn');
+    if (button) {
+      button.disabled = true;
+      button.textContent = 'Logging out...';
+    }
+    try {
+      await auth.signOut();
+      // onAuthStateChanged hides the app shell and returns to the login screen.
+    } catch (err) {
+      showAuthMessage('Logout failed: ' + friendlyError(err), true);
+    } finally {
+      if (button) {
+        button.disabled = false;
+        button.textContent = 'Logout';
+      }
+    }
+  }
+  function openDashboardPreview() {
+    currentUser = null;
+    currentRole = 'student';
+    appData = {moods:0, activities:0, friScore:70, pinLocked:false, journals:[]};
+    document.getElementById('user-chip').textContent = 'Demo Preview';
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-shell').style.display = 'block';
+    syncUI();
+  }
+
+  async function openSignedInApp(user) {
+    currentUser = user;
+    const profileSnap = await db.collection('users').doc(user.uid).get();
+    const profile = profileSnap.exists ? profileSnap.data() : {};
+    currentRole = profile.role || 'student';
+    document.getElementById('user-chip').textContent = profile.name || user.email;
+    const dataSnap = await db.collection('users').doc(user.uid).collection('privateData').doc('main').get();
+    appData = dataSnap.exists ? { ...{moods:0, activities:0, friScore:70, pinLocked:false, journals:[]}, ...dataSnap.data() } : {moods:0, activities:0, friScore:70, pinLocked:false, journals:[]};
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-shell').style.display = 'block';
+    syncUI();
+  }
+  auth.onAuthStateChanged(async user => {
+    if (!user) {
+      currentUser = null;
+      currentRole = null;
+      document.getElementById('app-shell').style.display = 'none';
+      document.getElementById('auth-screen').style.display = 'block';
+      return;
+    }
+    try {
+      await openSignedInApp(user);
+    } catch (err) {
+      showAuthMessage('Could not load your profile: ' + friendlyError(err), true);
+      await auth.signOut();
+    }
+  });
+  updateAuthView();
+
+  // Interactive monthly calendar and date-wise mood reports for the demo dashboard
+  let calendarViewDate = new Date();
+  let calendarSelectedDate = new Date();
+  calendarSelectedDate.setHours(0,0,0,0);
+
+  function renderSelectedDayReport() {
+    const title = document.getElementById('calendar-report-title');
+    const content = document.getElementById('calendar-report-content');
+    const saveBtn = document.querySelector('button[onclick="logMood()"]');
+    const todayKey = localDateKey(new Date());
+    const selectedKey = localDateKey(calendarSelectedDate);
+    const isToday = selectedKey === todayKey;
+    const isFuture = selectedKey > todayKey;
+    const entry = (appData.moodEntries || []).find(item => item.date === selectedKey);
+
+    if (title) title.textContent = isToday ? "Today's mood report" : (isFuture ? "Future date" : "Mood report");
+    if (entry) {
+      content.innerHTML = `<div style="font-size:1.05rem;font-weight:700;color:var(--coffee);">${escapeHTML(entry.mood)} ${entry.mood === 'Happy' ? '😊' : entry.mood === 'Calm' ? '😌' : entry.mood === 'Tired' ? '😴' : entry.mood === 'Anxious' ? '😰' : entry.mood === 'Angry' ? '😠' : '😢'}</div>
+        <div style="margin-top:5px;">Trigger: ${escapeHTML(entry.trigger || 'Not specified')}</div>
+        <div style="margin-top:4px;">Mood score: ${Number(entry.score) || 0}/100</div>
+        <div style="margin-top:4px;font-size:.78rem;">Saved: ${entry.savedAt ? new Date(entry.savedAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : 'Previously recorded'}</div>`;
+    } else if (isFuture) {
+      content.textContent = "This is a future date. You cannot add a mood in advance.";
+    } else if (!isToday) {
+      content.textContent = "No mood report was saved for this date.";
+    } else {
+      content.textContent = "No mood check-in saved yet today. Select an emoji below and save today's mood.";
+    }
+
+    if (saveBtn) {
+      saveBtn.disabled = !isToday;
+      saveBtn.textContent = isToday ? "Save Today's Mood" : "Mood entry available only for today";
+      saveBtn.style.opacity = isToday ? "1" : ".55";
+      saveBtn.style.cursor = isToday ? "pointer" : "not-allowed";
+    }
+    document.querySelectorAll('.mood-btn').forEach(btn => btn.classList.remove('selected'));
+    if (isToday && entry) {
+      const moodBtn = [...document.querySelectorAll('.mood-btn')].find(btn => btn.textContent.includes(entry.mood));
+      if (moodBtn) moodBtn.classList.add('selected');
+    }
+  }
+
+  function renderMindoraCalendar() {
+    const grid = document.getElementById('calendar-grid');
+    const label = document.getElementById('calendar-month-label');
+    if (!grid || !label) return;
+    const year = calendarViewDate.getFullYear();
+    const month = calendarViewDate.getMonth();
+    label.textContent = calendarViewDate.toLocaleDateString('en-US', {month:'long', year:'numeric'});
+    grid.innerHTML = '';
+    ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(day => {
+      const el = document.createElement('div'); el.className = 'calendar-weekday'; el.textContent = day; grid.appendChild(el);
+    });
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const prevDays = new Date(year, month, 0).getDate();
+    const todayKey = localDateKey(new Date());
+    for (let i=0; i<42; i++) {
+      let dayNum, date, muted=false;
+      if (i < firstDay) { dayNum = prevDays - firstDay + i + 1; date = new Date(year, month-1, dayNum); muted=true; }
+      else if (i >= firstDay + daysInMonth) { dayNum = i - firstDay - daysInMonth + 1; date = new Date(year, month+1, dayNum); muted=true; }
+      else { dayNum = i - firstDay + 1; date = new Date(year, month, dayNum); }
+      date.setHours(0,0,0,0);
+      const key = localDateKey(date);
+      const btn = document.createElement('button');
+      btn.type='button';
+      btn.className='calendar-day' + (muted?' muted':'');
+      btn.textContent=dayNum;
+      if (key === todayKey) btn.classList.add('today');
+      const dayStatus = (appData.calendarTaskStatus || {})[key];
+      if (dayStatus && Number(dayStatus.skipped) > 0) {
+        btn.classList.add('day-skipped');
+        btn.title = `Task skipped: ${dayStatus.skipped}`;
+      } else if (dayStatus && Number(dayStatus.completed) > 0) {
+        btn.classList.add('day-completed');
+        btn.title = `Task completed: ${dayStatus.completed}`;
+      }
+      if (key === localDateKey(calendarSelectedDate)) btn.classList.add('selected');
+      if ((appData.moodEntries || []).some(item => item.date === key)) {
+        btn.style.boxShadow = 'inset 0 -3px 0 #8b6bd0';
+        btn.title = 'Mood report available';
+      }
+      btn.addEventListener('click', () => {
+        calendarSelectedDate = new Date(date);
+        calendarViewDate = new Date(date.getFullYear(), date.getMonth(), 1);
+        renderMindoraCalendar();
+      });
+      grid.appendChild(btn);
+    }
+    const selectedLabel = document.getElementById('calendar-selected-label');
+    selectedLabel.textContent = 'Selected: ' + calendarSelectedDate.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'});
+    renderSelectedDayReport();
+  }
+  function changeCalendarMonth(offset) {
+    calendarViewDate = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth()+offset, 1);
+    renderMindoraCalendar();
+  }
+  renderMindoraCalendar();
+
+  
+  let focusStudyMinutes=25, focusBreakMinutes=5, focusSeconds=1500, focusMode='focus', focusInterval=null;
+  function updateFocusDisplay(){
+    const e=document.getElementById('focus-timer-display');
+    if(e)e.textContent=String(Math.floor(focusSeconds/60)).padStart(2,'0')+':'+String(focusSeconds%60).padStart(2,'0');
+    const task=document.getElementById('focus-current-task');
+    if(task)task.textContent=focusMode==='focus'?'Current task: Study Focus':'Current task: Break Time';
+  }
+  function applyFocusSettings(){
+    const study=parseInt(document.getElementById('focus-study-minutes').value,10);
+    const rest=parseInt(document.getElementById('focus-break-minutes').value,10);
+    if(!Number.isFinite(study)||study<1||study>180||!Number.isFinite(rest)||rest<1||rest>60){
+      alert('Study time must be 1–180 minutes and break time 1–60 minutes.');return;
+    }
+    focusStudyMinutes=study;focusBreakMinutes=rest;
+    resetFocusTimer();
+    document.getElementById('focus-timer-status').textContent='Your custom times are applied.';
+  }
+  function startFocusTimer(){
+    if(focusInterval)return;
+    document.getElementById('focus-timer-status').textContent=focusMode==='focus'?'Study session running…':'Break session running…';
+    focusInterval=setInterval(()=>{
+      focusSeconds--;updateFocusDisplay();
+      if(focusSeconds<=0){
+        clearInterval(focusInterval);focusInterval=null;
+        if(focusMode==='focus'){
+          focusMode='break';focusSeconds=focusBreakMinutes*60;updateFocusDisplay();
+          document.getElementById('focus-timer-status').textContent='Study session complete. Your break has started automatically.';
+          startFocusTimer();
+        }else{
+          focusMode='focus';focusSeconds=focusStudyMinutes*60;updateFocusDisplay();
+          document.getElementById('focus-timer-status').textContent='Break complete. Your next study session has started automatically.';
+          startFocusTimer();
+        }
+      }
+    },1000);
+  }
+  function pauseFocusTimer(){
+    if(focusInterval){clearInterval(focusInterval);focusInterval=null;}
+    const e=document.getElementById('focus-timer-status');if(e)e.textContent='Timer paused.';
+  }
+  function resetFocusTimer(){
+    pauseFocusTimer();focusSeconds=(focusMode==='focus'?focusStudyMinutes:focusBreakMinutes)*60;updateFocusDisplay();
+  }
+  function skipFocusTask(){
+    pauseFocusTimer();
+    if(focusMode==='focus'){
+      focusMode='break';focusSeconds=focusBreakMinutes*60;
+      document.getElementById('focus-timer-status').textContent='Study task skipped. Moving to break.';
+    }else{
+      focusMode='focus';focusSeconds=focusStudyMinutes*60;
+      document.getElementById('focus-timer-status').textContent='Break skipped. Moving to study.';
+    }
+    updateFocusDisplay();
+    startFocusTimer();
+  }
+  function startMeditation(minutes){stopMeditation();let left=minutes*60;const display=document.getElementById('meditation-time');document.getElementById('meditation-instruction').textContent='Breathe naturally. When your mind wanders, gently bring your attention back to your breath.';const tick=()=>{display.textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');left--;if(left<0){stopMeditation();display.textContent='Session complete';document.getElementById('meditation-instruction').textContent='Well done. Notice how you feel before returning to your day.';}};tick();meditationInterval=setInterval(tick,1000);}
+  function stopMeditation(){if(meditationInterval){clearInterval(meditationInterval);meditationInterval=null;}}
+  function completeSleepRoutine(){document.getElementById('sleep-routine-status').textContent='Wind-down routine marked complete. Rest well 🌙';}
+</script>
+
+<script>
+(function(){
+const words={
+'Logout':['बाहेर पडा','लॉग आउट'],'SOS Help':['तातडीची मदत','SOS सहायता'],'Student Wellness':['विद्यार्थी आरोग्य','विद्यार्थी कल्याण'],
+'Today':['आज','आज'],'Tools':['टूल्स','टूल्स'],'Companion':['सोबती','साथी'],'Journal':['दैनंदिनी','डायरी'],'Progress':['प्रगती','प्रगति'],
+'YOUR DAILY SPACE':['तुमच्यासाठी रोजची जागा','आपकी रोज़ की जगह'],'Check in with yourself, one small step at a time.':['स्वतःच्या भावना जाणून घ्या आणि एकेक छोटे पाऊल टाका.','अपने मन को समझें और एक-एक छोटा कदम बढ़ाएँ।'],
+"Today's Completion":['आजची पूर्णता','आज की प्रगति'],'Your daily activity will appear here as you complete it.':['तुम्ही कृती पूर्ण करताच तुमची रोजची प्रगती येथे दिसेल.','गतिविधियाँ पूरी करने पर आपकी दैनिक प्रगति यहाँ दिखेगी।'],'Your progress updates automatically when you save an entry or complete an activity.':['नोंद सेव्ह केल्यावर किंवा कृती पूर्ण केल्यावर प्रगती आपोआप अपडेट होईल.','एंट्री सेव करने या गतिविधि पूरी करने पर प्रगति अपने-आप अपडेट होगी।'],
+"Today's mood report":['आजचा मूड अहवाल','आज की मनोदशा रिपोर्ट'],'Select a date to view your day':['दिवसाचा अहवाल पाहण्यासाठी तारीख निवडा','दिन की रिपोर्ट देखने के लिए तारीख चुनें'],'Welcome back, Student':['पुन्हा स्वागत आहे, विद्यार्थी','वापसी पर स्वागत है, विद्यार्थी'],'Stronger Mind. Better You.':['मन मजबूत. तुम्ही अधिक सक्षम.','मज़बूत मन। बेहतर आप।'],
+'Take 2 minutes to check in with your emotions and pace your study energy.':['तुमच्या भावना समजून घेण्यासाठी आणि अभ्यासाचा वेग ठरवण्यासाठी २ मिनिटे द्या.','अपनी भावनाओं को समझने और पढ़ाई की ऊर्जा संतुलित करने के लिए 2 मिनट दें।'],
+'Feature 1: Daily Mood Tracker':['फीचर १: रोजचा मूड ट्रॅकर','फीचर 1: दैनिक मूड ट्रैकर'],'1. Daily Mood Tracker':['१. रोजचा मूड ट्रॅकर','1. दैनिक मूड ट्रैकर'],'How are you feeling right now? Select an emotion and record what caused it.':['आत्ता तुम्हाला कसे वाटत आहे? भावना निवडा आणि त्यामागचे कारण नोंदवा.','अभी आप कैसा महसूस कर रहे हैं? भावना चुनें और उसका कारण लिखें।'],
+'Happy':['आनंदी','खुश'],'Calm':['शांत','शांत'],'Tired':['थकलेले','थके हुए'],'Anxious':['चिंताग्रस्त','चिंतित'],'Angry':['रागावलेले','गुस्सा'],'Sad':['दुःखी','उदास'],'Save Today\'s Mood':['आजचा मूड सेव्ह करा','आज की मनोदशा सेव करें'],
+'Special Feature 5: Daily 5-Minute Student Challenge':['विशेष फीचर ५: रोजचे ५ मिनिटांचे आव्हान','विशेष फीचर 5: दैनिक 5 मिनट की चुनौती'],'Daily 5-Minute Challenge':['रोजचे ५ मिनिटांचे आव्हान','दैनिक 5 मिनट की चुनौती'],'Student Corner':['विद्यार्थी विभाग','विद्यार्थी कॉर्नर'],'Complete small daily habits to build emotional resilience during university.':['महाविद्यालयीन जीवनात भावनिक ताकद वाढवण्यासाठी रोजच्या छोट्या सवयी पूर्ण करा.','कॉलेज जीवन में भावनात्मक मजबूती के लिए रोज़ की छोटी आदतें पूरी करें।'],'Edit / Add Questions':['प्रश्न बदला / जोडा','प्रश्न संपादित / जोड़ें'],'Edit existing questions or add new ones':['सध्याचे प्रश्न बदला किंवा नवीन प्रश्न जोडा','मौजूदा प्रश्न बदलें या नए प्रश्न जोड़ें'],'Add':['जोडा','जोड़ें'],'Save Changes':['बदल सेव्ह करा','बदलाव सेव करें'],
+'RESET & RECHARGE':['मन शांत करा, पुन्हा ऊर्जा मिळवा','आराम करें, नई ऊर्जा पाएँ'],'Wellness Tools':['आरोग्यदायी साधने','वेलनेस टूल्स'],'Simple exercises to help you feel calmer and more focused.':['अधिक शांत आणि एकाग्र वाटण्यासाठी सोपे व्यायाम.','अधिक शांत और केंद्रित महसूस करने के लिए आसान अभ्यास।'],
+'Guided Breathing':['मार्गदर्शित श्वसन','निर्देशित श्वास अभ्यास'],'Relaxation Sound':['विश्रांतीसाठी ध्वनी','आरामदायक ध्वनि'],'5-4-3-2-1 Grounding Exercise':['५-४-३-२-१ ग्राउंडिंग व्यायाम','5-4-3-2-1 ग्राउंडिंग अभ्यास'],'Bring your focus to now':['लक्ष वर्तमान क्षणाकडे आणा','अपना ध्यान वर्तमान क्षण पर लाएँ'],'Complete Grounding':['ग्राउंडिंग पूर्ण करा','ग्राउंडिंग पूरी करें'],'Stress Management Centre':['ताण व्यवस्थापन केंद्र','तनाव प्रबंधन केंद्र'],'Burnout Warning-Sign Checklist':['मानसिक थकव्याची लक्षणे तपासा','मानसिक थकान के संकेत जाँचें'],'Emotion Wheel':['भावना चक्र','भावना चक्र'],'Educational Self-Assessment':['स्व-मूल्यांकन','स्व-मूल्यांकन'],'Psychology Game':['मानसशास्त्रीय खेळ','मनोविज्ञान खेल'],'What Would You Do?':['तुम्ही काय कराल?','आप क्या करेंगे?'],'Study Focus Timer':['अभ्यास एकाग्रता टाइमर','पढ़ाई फोकस टाइमर'],'Guided Meditation':['मार्गदर्शित ध्यान','निर्देशित ध्यान'],'Sleep Relaxation':['झोपेपूर्वी विश्रांती','नींद से पहले आराम'],
+'Start Guided Breathing':['श्वसन व्यायाम सुरू करा','श्वास अभ्यास शुरू करें'],'Stop':['थांबवा','रोकें'],'Ready':['तयार','तैयार'],'Start':['सुरू करा','शुरू करें'],'Pause':['थांबा','रोकें'],'Reset':['रीसेट','रीसेट'],'Skip Task →':['पुढील टप्प्यावर जा →','अगला चरण छोड़ें →'],'Apply Time Settings':['वेळ लागू करा','समय लागू करें'],'Study minutes':['अभ्यासाची मिनिटे','पढ़ाई के मिनट'],'Break minutes':['विश्रांतीची मिनिटे','ब्रेक के मिनट'],'End Session':['सत्र संपवा','सत्र समाप्त करें'],'I completed my wind-down':['माझी झोपेपूर्वीची दिनचर्या पूर्ण झाली','मैंने सोने से पहले की दिनचर्या पूरी की'],
+'A SUPPORTIVE SPACE':['समजून घेणारी साथ','सहायक जगह'],'Mindora Companion':['माइंडोरा सोबती','माइंडोरा साथी'],'Share what is on your mind without judgment.':['मनातले विचार निःसंकोचपणे सांगा.','बिना किसी आलोचना के अपने मन की बात साझा करें।'],'AI Emotional Companion':['AI भावनिक सोबती','AI भावनात्मक साथी'],'Supportive Guide':['आधार देणारा मार्गदर्शक','सहायक मार्गदर्शक'],'Send':['पाठवा','भेजें'],'Clear chat':['चॅट साफ करा','चैट साफ़ करें'],
+'YOUR PRIVATE SPACE':['तुमची खाजगी जागा','आपकी निजी जगह'],'My Journal':['माझी दैनंदिनी','मेरी डायरी'],'Write freely, reflect, and keep track of your thoughts.':['मोकळेपणाने लिहा, विचार करा आणि भावना नोंदवा.','खुलकर लिखें, विचार करें और अपने मन की बातें दर्ज करें।'],'Save Private Entry':['खाजगी नोंद सेव्ह करा','निजी एंट्री सेव करें'],'Daily Reflection Prompt:':['दैनंदिन विचारप्रेरक प्रश्न:','दैनिक चिंतन प्रश्न:'],
+'YOUR WELLNESS JOURNEY':['तुमचा आरोग्यप्रवास','आपकी वेलनेस यात्रा'],'My Progress':['माझी प्रगती','मेरी प्रगति'],'Notice your patterns and celebrate small steps forward.':['तुमच्या सवयी ओळखा आणि प्रत्येक छोट्या प्रगतीचा आनंद साजरा करा.','अपनी आदतों को समझें और हर छोटी प्रगति का जश्न मनाएँ।'],'Weekly Summary':['आठवड्याचा आढावा','साप्ताहिक सारांश'],'Mood Check-ins':['मूड नोंदी','मूड चेक-इन'],'Journal Entries':['दैनंदिनी नोंदी','डायरी एंट्री'],'Exercises Done':['पूर्ण केलेले व्यायाम','पूरे किए गए अभ्यास'],'Wellness Streak':['सलग आरोग्यदायी दिवस','लगातार वेलनेस दिन'],'Settings & Privacy Controls':['सेटिंग्ज आणि गोपनीयता','सेटिंग्स और गोपनीयता'],'Academic Safety':['अभ्यास सुरक्षितता','अध्ययन सुरक्षा'],'Journal Privacy Lock':['दैनंदिनी गोपनीयता लॉक','डायरी प्राइवेसी लॉक'],'Clear Data':['माहिती पुसून टाका','डेटा साफ़ करें'],
+'WELCOME TO MINDORA':['माइंडोरामध्ये स्वागत आहे','माइंडोरा में आपका स्वागत है'],'Your wellbeing journey':['तुमचा आरोग्यप्रवास','आपकी वेलनेस यात्रा'],'starts here.':['येथून सुरू होतो.','यहाँ से शुरू होती है।'],'A little pause. A kinder thought. A healthier everyday.':['थोडा विराम. एक सकारात्मक विचार. अधिक निरोगी दिवस.','थोड़ा ठहराव। एक अच्छा विचार। हर दिन बेहतर।'],'Sign in or create your secure account.':['लॉगिन करा किंवा सुरक्षित खाते तयार करा.','साइन इन करें या सुरक्षित खाता बनाएँ।'],'Full name':['पूर्ण नाव','पूरा नाम'],'Email address':['ईमेल पत्ता','ईमेल पता'],'Password':['पासवर्ड','पासवर्ड'],'Create Student Account':['विद्यार्थी खाते तयार करा','विद्यार्थी खाता बनाएँ'],'Already have an account? Login':['आधीच खाते आहे? लॉगिन करा','पहले से खाता है? लॉगिन करें'],'Forgot password?':['पासवर्ड विसरलात?','पासवर्ड भूल गए?'],'Preview Dashboard (Demo)':['डॅशबोर्ड पाहा (डेमो)','डैशबोर्ड देखें (डेमो)'],'Explore the dashboard without creating an account.':['खाते न तयार करता डॅशबोर्ड पाहा.','खाता बनाए बिना डैशबोर्ड देखें।'],'Made for student wellbeing':['विद्यार्थ्यांच्या कल्याणासाठी','विद्यार्थियों के कल्याण के लिए'],
+'Language':['भाषा','भाषा'],'Selected:':['निवडलेली तारीख:','चुनी गई तारीख:'],'How to use it:':['वापरण्याची पद्धत:','इसे कैसे उपयोग करें:'],'What is Guided Breathing?':['मार्गदर्शित श्वसन म्हणजे काय?','निर्देशित श्वास अभ्यास क्या है?'],'What is Stress Management?':['ताण व्यवस्थापन म्हणजे काय?','तनाव प्रबंधन क्या है?'],'What is the Emotion Wheel?':['भावना चक्र म्हणजे काय?','भावना चक्र क्या है?'],'What is Self-Assessment?':['स्व-मूल्यांकन म्हणजे काय?','स्व-मूल्यांकन क्या है?'],'What is the Scenario Game?':['परिस्थिती खेळ म्हणजे काय?','परिस्थिति खेल क्या है?'],'What is the Study Focus Timer?':['अभ्यास एकाग्रता टाइमर म्हणजे काय?','पढ़ाई फोकस टाइमर क्या है?'],'What is Guided Meditation?':['मार्गदर्शित ध्यान म्हणजे काय?','निर्देशित ध्यान क्या है?'],'What is Sleep Relaxation?':['झोपेपूर्वी विश्रांती म्हणजे काय?','नींद से पहले आराम क्या है?']
+};
+const reverse={mr:{},hi:{}}; for(const [en,v] of Object.entries(words)){reverse.mr[v[0]]=en;reverse.hi[v[1]]=en;}
+let current='en';
+function translateTextNode(node,lang){const raw=node.nodeValue;const trim=raw.trim();if(!trim)return;let en=raw.trim();if(lang!=='en'){if(reverse.mr[en])en=reverse.mr[en];if(reverse.hi[en])en=reverse.hi[en];const val=words[en]?.[lang==='mr'?0:1];if(val)node.nodeValue=raw.replace(trim,val);}else{if(reverse.mr[en])en=reverse.mr[en];if(reverse.hi[en])en=reverse.hi[en];if(words[en])node.nodeValue=raw.replace(trim,en);}}
+function translatePage(lang){current=lang;document.documentElement.lang=lang;const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let n;while(n=walker.nextNode()){if(n.parentElement?.closest('script,style'))continue;translateTextNode(n,lang);}const attrs=['placeholder','title','aria-label'];document.querySelectorAll('input,textarea,button,select,label').forEach(el=>attrs.forEach(a=>{const v=el.getAttribute(a);if(!v)return;let en=v.trim();if(lang==='en'){en=reverse.mr[en]||reverse.hi[en]||en;el.setAttribute(a,en);}else{en=reverse[lang][en]||en;const t=words[en]?.[lang==='mr'?0:1];if(t)el.setAttribute(a,t);}}));}
+window.setMindoraLanguage=function(lang){translatePage(lang);try{localStorage.setItem('mindoraLanguage',lang);}catch(e){}};
+document.addEventListener('DOMContentLoaded',()=>{const sel=document.getElementById('mindora-language');let saved='en';try{saved=localStorage.getItem('mindoraLanguage')||'en';}catch(e){}if(sel)sel.value=saved;translatePage(saved);const obs=new MutationObserver(records=>{for(const r of records){r.addedNodes.forEach(node=>{if(node.nodeType===Node.TEXT_NODE)translateTextNode(node,current);else if(node.nodeType===Node.ELEMENT_NODE){const w=document.createTreeWalker(node,NodeFilter.SHOW_TEXT);let t;while(t=w.nextNode())translateTextNode(t,current);}});}});obs.observe(document.body,{childList:true,subtree:true});});
+})();
+</script>
+
+</body>
+</html>
